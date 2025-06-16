@@ -1,3 +1,4 @@
+// Meal planning types
 export type MealState = 'loading' | 'suggested' | 'accepted';
 
 export interface MealIdea {

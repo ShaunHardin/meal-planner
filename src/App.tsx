@@ -69,6 +69,8 @@ function App() {
   const [showGrid, setShowGrid] = useState(false);
   const [mealIdeas, setMealIdeas] = useState<MealIdea[]>([]);
   const [prompt, setPrompt] = useState('');
+  const [openaiResponse, setOpenaiResponse] = useState<string>('');
+  const [isTestingOpenai, setIsTestingOpenai] = useState(false);
 
   const generateIdeas = () => {
     // Set loading state
@@ -134,6 +136,26 @@ function App() {
     }, 800);
   };
 
+  const testOpenAI = async () => {
+    setIsTestingOpenai(true);
+    setOpenaiResponse('');
+    
+    try {
+      const response = await fetch('/api/meal-poc');
+      const data = await response.json();
+      
+      if (response.ok) {
+        setOpenaiResponse(data.message);
+      } else {
+        setOpenaiResponse(`Error: ${data.error}`);
+      }
+    } catch (error) {
+      setOpenaiResponse(`Network error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    } finally {
+      setIsTestingOpenai(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-white font-inter">
       <Header onShuffleAll={shuffleAll} showShuffle={showGrid} />
@@ -154,6 +176,24 @@ function App() {
               onReject={rejectMeal}
             />
           )}
+
+          <div className="mt-8 p-6 bg-gray-50 rounded-lg border">
+            <h3 className="text-lg font-semibold mb-4">OpenAI Integration Test</h3>
+            <button
+              onClick={testOpenAI}
+              disabled={isTestingOpenai}
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isTestingOpenai ? 'Testing...' : 'Test OpenAI'}
+            </button>
+            
+            {openaiResponse && (
+              <div className="mt-4 p-4 bg-white rounded-lg border">
+                <h4 className="font-medium mb-2">OpenAI Response:</h4>
+                <p className="text-gray-700">{openaiResponse}</p>
+              </div>
+            )}
+          </div>
         </div>
       </main>
       

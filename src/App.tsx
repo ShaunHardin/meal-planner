@@ -1,219 +1,163 @@
 import React, { useState } from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { MealCard } from './components/MealCard';
-import { PromptBox } from './components/PromptBox';
-// import { MealSlot } from './types.ts';
+import Header from './components/Header';
+import PromptBox from './components/PromptBox';
+import MealGrid from './components/MealGrid';
+import Footer from './components/Footer';
 
-// Temporary inline interface to test
-interface MealIdea {
+export interface MealIdea {
+  id: string;
   title: string;
   summary: string;
-  recipe_steps: string[];
-  ingredients: string[];
   state: 'loading' | 'suggested' | 'accepted';
 }
 
-interface MealSlot {
-  id: number;
-  idea?: MealIdea;
-}
-import { generateIdeas, replaceIdea } from './api';
+const initialMealIdeas: MealIdea[] = [
+  {
+    id: '1',
+    title: 'Lentil Tacos',
+    summary: 'Spiced green lentils topped with avocado crema in warm tortillas.',
+    state: 'suggested'
+  },
+  {
+    id: '2',
+    title: 'Caprese Pasta',
+    summary: '15-min cherry-tomato pasta with fresh mozzarella & basil.',
+    state: 'suggested'
+  },
+  {
+    id: '3',
+    title: 'Chickpea Curry',
+    summary: 'One-pot coconut curry served over microwave rice.',
+    state: 'suggested'
+  },
+  {
+    id: '4',
+    title: 'Veggie Stir-Fry',
+    summary: 'Quick soy-ginger stir-fry with frozen mixed veggies.',
+    state: 'suggested'
+  }
+];
+
+const alternativeMeals = [
+  {
+    title: 'Spinach & Feta Quesadillas',
+    summary: 'Crispy tortillas filled with spinach, feta, and caramelized onions.'
+  },
+  {
+    title: 'Mushroom Risotto',
+    summary: 'Creamy arborio rice with mixed mushrooms and parmesan.'
+  },
+  {
+    title: 'Sweet Potato Bowls',
+    summary: 'Roasted sweet potato with black beans and tahini dressing.'
+  },
+  {
+    title: 'Thai Basil Noodles',
+    summary: 'Rice noodles with fresh basil, vegetables, and lime.'
+  },
+  {
+    title: 'Mediterranean Wrap',
+    summary: 'Hummus wrap with cucumber, tomatoes, and olives.'
+  },
+  {
+    title: 'Zucchini Fritters',
+    summary: 'Crispy zucchini fritters with yogurt dipping sauce.'
+  }
+];
 
 function App() {
-  return (
-    <Router>
-      <div className="min-h-screen bg-gray-50">
-        <header className="bg-white shadow-sm border-b">
-          <div className="container mx-auto px-4 py-4">
-            <div className="flex items-center justify-between">
-              <h1 className="text-2xl font-bold text-gray-900">
-                Meal Planner
-              </h1>
-              <ShuffleAllButton />
-            </div>
-          </div>
-        </header>
+  const [showGrid, setShowGrid] = useState(false);
+  const [mealIdeas, setMealIdeas] = useState<MealIdea[]>([]);
+  const [prompt, setPrompt] = useState('');
 
-        <main className="container mx-auto px-4 py-8">
-          <Routes>
-            <Route path="/" element={<MealPlannerPage />} />
-          </Routes>
-        </main>
-      </div>
-    </Router>
-  );
-}
-
-function ShuffleAllButton() {
-  const [isShuffling, setIsShuffling] = useState(false);
-
-  const handleShuffleAll = async () => {
-    // TODO: Implement shuffle all functionality
-    setIsShuffling(true);
-    setTimeout(() => setIsShuffling(false), 2000);
-  };
-
-  return (
-    <button 
-      onClick={handleShuffleAll}
-      disabled={isShuffling}
-      className={`
-        px-4 py-2 rounded-lg font-medium transition-colors flex items-center gap-2
-        ${isShuffling 
-          ? 'bg-gray-100 text-gray-400 cursor-not-allowed' 
-          : 'bg-blue-600 hover:bg-blue-700 text-white'
-        }
-      `}
-    >
-      {isShuffling ? (
-        <>
-          <div className="w-4 h-4 border-2 border-gray-300 border-t-transparent rounded-full animate-spin"></div>
-          Shuffling...
-        </>
-      ) : (
-        <>
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-          </svg>
-          Shuffle All
-        </>
-      )}
-    </button>
-  );
-}
-
-function MealPlannerPage() {
-  const [mealSlots, setMealSlots] = useState<MealSlot[]>([
-    { id: 1 },
-    { id: 2 },
-    { id: 3 },
-    { id: 4 }
-  ]);
-  const [isGenerating, setIsGenerating] = useState(false);
-  const [hasGenerated, setHasGenerated] = useState(false);
-
-  const handleGenerate = async (prompt: string) => {
-    setIsGenerating(true);
+  const generateIdeas = () => {
+    // Set loading state
+    const loadingIdeas = initialMealIdeas.map(idea => ({
+      ...idea,
+      state: 'loading' as const
+    }));
     
-    // Set all slots to loading state
-    setMealSlots(slots => slots.map(slot => ({
-      ...slot,
-      idea: { 
-        title: '', 
-        summary: '', 
-        recipe_steps: [], 
-        ingredients: [], 
-        state: 'loading' as const 
-      }
-    })));
+    setMealIdeas(loadingIdeas);
+    setShowGrid(true);
 
-    try {
-      const response = await generateIdeas({ userPrompt: prompt });
-      
-      // Update slots with generated ideas
-      setMealSlots(slots => slots.map((slot, index) => ({
-        ...slot,
-        idea: response.ideas[index] || undefined
-      })));
-      
-      setHasGenerated(true);
-    } catch (error) {
-      console.error('Failed to generate ideas:', error);
-      // Reset to empty state on error
-      setMealSlots(slots => slots.map(slot => ({
-        ...slot,
-        idea: undefined
-      })));
-    } finally {
-      setIsGenerating(false);
-    }
+    // After 800ms, show suggested ideas
+    setTimeout(() => {
+      setMealIdeas(initialMealIdeas);
+    }, 800);
   };
 
-  const handleAccept = (slotId: number) => {
-    setMealSlots(slots => slots.map(slot => 
-      slot.id === slotId && slot.idea
-        ? { ...slot, idea: { ...slot.idea, state: 'accepted' as const } }
-        : slot
+  const acceptMeal = (id: string) => {
+    setMealIdeas(prev => prev.map(meal => 
+      meal.id === id ? { ...meal, state: 'accepted' as const } : meal
     ));
   };
 
-  const handleReject = async (slotId: number) => {
-    const slot = mealSlots.find(s => s.id === slotId);
-    if (!slot?.idea) return;
-
-    // Set slot to loading
-    setMealSlots(slots => slots.map(s => 
-      s.id === slotId 
-        ? { ...s, idea: { ...s.idea!, state: 'loading' as const } }
-        : s
+  const rejectMeal = (id: string) => {
+    // Set to loading
+    setMealIdeas(prev => prev.map(meal => 
+      meal.id === id ? { ...meal, state: 'loading' as const } : meal
     ));
 
-    try {
-      const excludeTitles = mealSlots
-        .filter(s => s.idea && s.id !== slotId)
-        .map(s => s.idea!.title);
-
-      const response = await replaceIdea({ 
-        userPrompt: 'Replace with a different meal idea',
-        excludeTitles 
-      });
-
-      setMealSlots(slots => slots.map(s => 
-        s.id === slotId 
-          ? { ...s, idea: response.idea }
-          : s
+    // After 800ms, show new suggestion
+    setTimeout(() => {
+      const randomMeal = alternativeMeals[Math.floor(Math.random() * alternativeMeals.length)];
+      setMealIdeas(prev => prev.map(meal => 
+        meal.id === id ? { 
+          ...meal, 
+          title: randomMeal.title,
+          summary: randomMeal.summary,
+          state: 'suggested' as const 
+        } : meal
       ));
-    } catch (error) {
-      console.error('Failed to replace idea:', error);
-      // Revert to original state on error
-      setMealSlots(slots => slots.map(s => 
-        s.id === slotId 
-          ? { ...s, idea: { ...slot.idea!, state: 'suggested' as const } }
-          : s
-      ));
-    }
+    }, 800);
+  };
+
+  const shuffleAll = () => {
+    // Set non-accepted meals to loading
+    setMealIdeas(prev => prev.map(meal => 
+      meal.state !== 'accepted' ? { ...meal, state: 'loading' as const } : meal
+    ));
+
+    // After 800ms, show new suggestions for non-accepted meals
+    setTimeout(() => {
+      setMealIdeas(prev => prev.map(meal => {
+        if (meal.state === 'accepted') return meal;
+        
+        const randomMeal = alternativeMeals[Math.floor(Math.random() * alternativeMeals.length)];
+        return {
+          ...meal,
+          title: randomMeal.title,
+          summary: randomMeal.summary,
+          state: 'suggested' as const
+        };
+      }));
+    }, 800);
   };
 
   return (
-    <div className="space-y-6">
-      <div className="text-center">
-        <h2 className="text-xl font-semibold text-gray-800 mb-4">
-          Your Weekly Dinner Plan
-        </h2>
-      </div>
-
-      {/* Prompt Box - show only if no ideas generated yet */}
-      {!hasGenerated && (
-        <PromptBox 
-          onGenerate={handleGenerate}
-          isLoading={isGenerating}
-          placeholder="Describe your meal preferences... (e.g., 'I need 4 quick vegetarian dinners with simple ingredients')"
-        />
-      )}
-
-      {/* Meal Cards Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {mealSlots.map((slot) => (
-          <MealCard
-            key={slot.id}
-            slotNumber={slot.id}
-            idea={slot.idea}
-            onAccept={() => handleAccept(slot.id)}
-            onReject={() => handleReject(slot.id)}
-          />
-        ))}
-      </div>
-
-      {/* Show PromptBox again after generation for new ideas */}
-      {hasGenerated && (
-        <div className="pt-4">
+    <div className="min-h-screen bg-white font-inter">
+      <Header onShuffleAll={shuffleAll} showShuffle={showGrid} />
+      
+      <main className="container mx-auto px-6 py-8">
+        <div className="max-w-4xl mx-auto">
           <PromptBox 
-            onGenerate={handleGenerate}
-            isLoading={isGenerating}
-            placeholder="Want different ideas? Describe new preferences..."
+            prompt={prompt}
+            setPrompt={setPrompt}
+            onGenerate={generateIdeas}
+            showGrid={showGrid}
           />
+          
+          {showGrid && (
+            <MealGrid 
+              mealIdeas={mealIdeas}
+              onAccept={acceptMeal}
+              onReject={rejectMeal}
+            />
+          )}
         </div>
-      )}
+      </main>
+      
+      <Footer />
     </div>
   );
 }

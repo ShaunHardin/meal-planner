@@ -4,25 +4,35 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "concurrently \"node server.js\" \"vite\"",
+    "dev:frontend": "vite",
+    "dev:api": "node server.js",
     "build": "vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "type-check": "tsc --noEmit",
+    "preview": "vite preview",
+    "test:poc": "node -e \"fetch('http://localhost:3001/meal-poc').then(r=>r.json()).then(console.log).catch(console.error)\""
   },
   "dependencies": {
     "lucide-react": "^0.344.0",
+    "openai": "^5.5.1",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"
   },
   "devDependencies": {
     "@eslint/js": "^9.9.1",
+    "@types/express": "^5.0.3",
+    "@types/node": "^24.0.3",
     "@types/react": "^18.3.5",
     "@types/react-dom": "^18.3.0",
     "@vitejs/plugin-react": "^4.3.1",
     "autoprefixer": "^10.4.18",
+    "concurrently": "^9.1.2",
+    "dotenv": "^16.5.0",
     "eslint": "^9.9.1",
     "eslint-plugin-react-hooks": "^5.1.0-rc.0",
     "eslint-plugin-react-refresh": "^0.4.11",
+    "express": "^5.1.0",
     "globals": "^15.9.0",
     "postcss": "^8.4.35",
     "tailwindcss": "^3.4.1",

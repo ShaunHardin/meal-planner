@@ -10,7 +10,7 @@ interface MealGridProps {
 
 const MealGrid: React.FC<MealGridProps> = ({ mealIdeas, onAccept, onReject }) => {
   return (
-    <div className="animate-fade-in">
+    <div className="animate-fade-in" data-testid="meal-grid">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {mealIdeas.map((meal) => (
           <MealCard

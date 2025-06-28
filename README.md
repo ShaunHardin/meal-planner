@@ -11,10 +11,11 @@ This application aims to simplify meal planning by providing users with personal
 The application is in active development with the following features implemented:
 
 - **Frontend**: React with TypeScript, styled with Tailwind CSS
-- **UI Components**: Meal cards, prompt input, grid layout, and interactive animations
-- **Backend**: Express.js API server with OpenAI integration for AI-powered meal suggestions
-- **Mock Data**: Sample meal ideas for development and testing
-- **State Management**: React hooks for managing meal suggestions and user interactions
+- **UI Components**: Structured meal cards with detailed cooking information, drag-and-drop reordering
+- **Backend**: Express.js API server with OpenAI Responses API integration for structured JSON meal generation
+- **Schema Validation**: Zod schemas ensure type-safe, structured meal data with ingredients and cooking steps
+- **AI Integration**: OpenAI Responses API with strict JSON schema validation and multi-turn conversation support
+- **State Management**: React hooks for managing structured meal data and conversation history
 
 ### Technology Stack
 
@@ -22,7 +23,9 @@ The application is in active development with the following features implemented
 - Vite for build tooling
 - Tailwind CSS for styling
 - Express.js for API server
-- OpenAI API for AI-powered suggestions
+- OpenAI Responses API for structured meal generation
+- Zod for schema validation and type safety
+- zod-to-json-schema for JSON Schema conversion
 - Lucide React for icons
 
 ## Getting Started
@@ -98,19 +101,73 @@ pnpm test:poc
 ```
 src/
 ├── components/          # React components
-│   ├── Header.tsx      # Application header
-│   ├── PromptBox.tsx   # User input component
-│   ├── MealGrid.tsx    # Meal suggestions grid
-│   ├── MealCard.tsx    # Individual meal card
-│   └── Footer.tsx      # Application footer
-├── App.tsx             # Main application component
-└── main.tsx            # Application entry point
-server.js               # Express API server
+│   ├── Header.tsx                    # Application header
+│   ├── PromptBox.tsx                 # User input component
+│   ├── StructuredMealGrid.tsx        # Structured meal grid with drag-and-drop
+│   ├── StructuredMealCard.tsx        # Detailed meal cards with editing
+│   └── Footer.tsx                    # Application footer
+├── types/
+│   └── meal.ts                       # Zod schemas and TypeScript types
+├── lib/
+│   └── openai.ts                     # OpenAI Responses API integration
+├── App.tsx                           # Main application component
+└── main.tsx                          # Application entry point
+server.js                             # Express API server with structured responses
 ```
+
+## OpenAI Responses API Integration
+
+This application leverages the **OpenAI Responses API** with strict JSON output to generate structured meal data without any string parsing. The integration follows these key principles:
+
+### Schema-Driven Generation
+
+1. **Zod Schema Definition**: Meals are defined using Zod schemas in `src/types/meal.ts`:
+   ```typescript
+   const Meal = z.object({
+     id: z.string(),
+     day: z.enum(["Sun","Mon","Tue","Wed","Thu","Fri","Sat"]),
+     name: z.string(),
+     description: z.string(),
+     prepMinutes: z.number(),
+     cookMinutes: z.number(),
+     ingredients: Ingredient.array().min(1),
+     steps: z.array(z.string()).min(1),
+     tags: z.array(z.string()).optional(),
+   });
+   ```
+
+2. **JSON Schema Conversion**: Zod schemas are converted to JSON Schema format using `zod-to-json-schema` for OpenAI API consumption
+
+3. **Strict Validation**: All responses are validated against the Zod schema, ensuring type safety and data consistency
+
+### API Integration Features
+
+- **Ready-to-Render Objects**: Returns `Meal[]` arrays directly—no string parsing required
+- **Multi-Turn Conversations**: Maintains conversation history for contextual meal editing
+- **Automatic Retry**: Failed schema validation triggers retry with corrective prompt
+- **Error Handling**: Zod validation errors are caught and handled gracefully
+
+### Example Usage
+
+```typescript
+// Sample prompt from requirements
+const samplePrompt = "Plan four dinners for next week (Sun-Thu, Tue is take-out). Dietary prefs: low-effort, toddler-friendly.";
+
+// Returns validated Meal[] objects
+const meals = await fetch('/api/generate-meals', {
+  method: 'POST',
+  body: JSON.stringify({ prompt: samplePrompt })
+});
+```
+
+### Success Criterion
+
+✅ **Given the sample prompt above, the app renders four dinner cards without any manual parsing code and throws a Zod error if the model ever deviates from the schema.**
 
 ## API Endpoints
 
-- `GET /meal-poc` - Test endpoint for AI-powered meal suggestions
+- `POST /generate-meals` - Generate structured meals using OpenAI Responses API with Zod validation
+- `GET /meal-poc` - Legacy test endpoint for basic AI-powered meal suggestions
 
 ## Contributing
 

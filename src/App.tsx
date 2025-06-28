@@ -1,108 +1,45 @@
 import React, { useState } from 'react';
 import Header from './components/Header';
 import PromptBox from './components/PromptBox';
-import MealGrid from './components/MealGrid';
+import StructuredMealGrid from './components/StructuredMealGrid';
 import Footer from './components/Footer';
-import OpenAIResponseDisplay from './components/OpenAIResponseDisplay';
+import { Meal } from './types/meal';
 
-export interface MealIdea {
-  id: string;
-  title: string;
-  summary: string;
-  state: 'loading' | 'suggested' | 'accepted';
+interface ConversationHistory {
+  role: "user" | "assistant";
+  content: string;
 }
 
-const initialMealIdeas: MealIdea[] = [
-  {
-    id: '1',
-    title: 'Lentil Tacos',
-    summary: 'Spiced green lentils topped with avocado crema in warm tortillas.',
-    state: 'suggested'
-  },
-  {
-    id: '2',
-    title: 'Caprese Pasta',
-    summary: '15-min cherry-tomato pasta with fresh mozzarella & basil.',
-    state: 'suggested'
-  },
-  {
-    id: '3',
-    title: 'Chickpea Curry',
-    summary: 'One-pot coconut curry served over microwave rice.',
-    state: 'suggested'
-  },
-  {
-    id: '4',
-    title: 'Veggie Stir-Fry',
-    summary: 'Quick soy-ginger stir-fry with frozen mixed veggies.',
-    state: 'suggested'
-  }
-];
-
-const alternativeMeals = [
-  {
-    title: 'Spinach & Feta Quesadillas',
-    summary: 'Crispy tortillas filled with spinach, feta, and caramelized onions.'
-  },
-  {
-    title: 'Mushroom Risotto',
-    summary: 'Creamy arborio rice with mixed mushrooms and parmesan.'
-  },
-  {
-    title: 'Sweet Potato Bowls',
-    summary: 'Roasted sweet potato with black beans and tahini dressing.'
-  },
-  {
-    title: 'Thai Basil Noodles',
-    summary: 'Rice noodles with fresh basil, vegetables, and lime.'
-  },
-  {
-    title: 'Mediterranean Wrap',
-    summary: 'Hummus wrap with cucumber, tomatoes, and olives.'
-  },
-  {
-    title: 'Zucchini Fritters',
-    summary: 'Crispy zucchini fritters with yogurt dipping sauce.'
-  }
-];
-
 function App() {
-  const [showGrid, setShowGrid] = useState(false);
-  const [mealIdeas, setMealIdeas] = useState<MealIdea[]>([]);
+  const [meals, setMeals] = useState<Meal[]>([]);
   const [prompt, setPrompt] = useState('');
-  const [openaiResponse, setOpenaiResponse] = useState<string>('');
   const [isGeneratingMeals, setIsGeneratingMeals] = useState(false);
   const [generationError, setGenerationError] = useState<string | null>(null);
+  const [conversationHistory, setConversationHistory] = useState<ConversationHistory[]>([]);
 
   const generateIdeas = async () => {
-    // Clear previous errors and responses
+    // Clear previous errors
     setGenerationError(null);
-    setOpenaiResponse('');
     setIsGeneratingMeals(true);
-    
-    // Set loading state for meal cards
-    const loadingIdeas = initialMealIdeas.map(idea => ({
-      ...idea,
-      state: 'loading' as const
-    }));
-    
-    setMealIdeas(loadingIdeas);
-    setShowGrid(true);
 
     try {
-      // Call OpenAI API with user prompt
+      // Call OpenAI API with user prompt and conversation history
       const response = await fetch('/api/generate-meals', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ prompt: prompt.trim() }),
+        body: JSON.stringify({ 
+          prompt: prompt.trim(),
+          history: conversationHistory
+        }),
       });
 
       const data = await response.json();
 
       if (response.ok) {
-        setOpenaiResponse(data.message);
+        setMeals(data.meals || []);
+        setConversationHistory(data.history || []);
       } else {
         throw new Error(data.error || 'Failed to generate meal suggestions');
       }
@@ -112,89 +49,89 @@ function App() {
     } finally {
       setIsGeneratingMeals(false);
     }
-
-    // Still show the mock meal cards after 800ms for now
-    setTimeout(() => {
-      setMealIdeas(initialMealIdeas);
-    }, 800);
   };
 
-  const acceptMeal = (id: string) => {
-    setMealIdeas(prev => prev.map(meal => 
-      meal.id === id ? { ...meal, state: 'accepted' as const } : meal
-    ));
+  const handleEditMeal = async (mealId: string, editPrompt: string) => {
+    setIsGeneratingMeals(true);
+    setGenerationError(null);
+
+    try {
+      const fullPrompt = `Edit the meal with ID ${mealId}: ${editPrompt}`;
+      
+      const response = await fetch('/api/generate-meals', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ 
+          prompt: fullPrompt,
+          history: conversationHistory
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setMeals(data.meals || []);
+        setConversationHistory(data.history || []);
+      } else {
+        throw new Error(data.error || 'Failed to edit meal');
+      }
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Network error occurred';
+      setGenerationError(errorMessage);
+    } finally {
+      setIsGeneratingMeals(false);
+    }
   };
 
-  const rejectMeal = (id: string) => {
-    // Set to loading
-    setMealIdeas(prev => prev.map(meal => 
-      meal.id === id ? { ...meal, state: 'loading' as const } : meal
-    ));
-
-    // After 800ms, show new suggestion
-    setTimeout(() => {
-      const randomMeal = alternativeMeals[Math.floor(Math.random() * alternativeMeals.length)];
-      setMealIdeas(prev => prev.map(meal => 
-        meal.id === id ? { 
-          ...meal, 
-          title: randomMeal.title,
-          summary: randomMeal.summary,
-          state: 'suggested' as const 
-        } : meal
-      ));
-    }, 800);
+  const handleRemoveMeal = (mealId: string) => {
+    setMeals(prev => prev.filter(meal => meal.id !== mealId));
   };
 
-  const shuffleAll = () => {
-    // Set non-accepted meals to loading
-    setMealIdeas(prev => prev.map(meal => 
-      meal.state !== 'accepted' ? { ...meal, state: 'loading' as const } : meal
-    ));
-
-    // After 800ms, show new suggestions for non-accepted meals
-    setTimeout(() => {
-      setMealIdeas(prev => prev.map(meal => {
-        if (meal.state === 'accepted') return meal;
-        
-        const randomMeal = alternativeMeals[Math.floor(Math.random() * alternativeMeals.length)];
-        return {
-          ...meal,
-          title: randomMeal.title,
-          summary: randomMeal.summary,
-          state: 'suggested' as const
-        };
-      }));
-    }, 800);
+  const handleReorderMeals = (reorderedMeals: Meal[]) => {
+    setMeals(reorderedMeals);
   };
 
+  const clearMeals = () => {
+    setMeals([]);
+    setConversationHistory([]);
+    setGenerationError(null);
+  };
 
   return (
     <div className="min-h-screen bg-white font-inter">
-      <Header onShuffleAll={shuffleAll} showShuffle={showGrid} />
+      <Header onShuffleAll={clearMeals} showShuffle={meals.length > 0} />
       
       <main className="container mx-auto px-6 py-8">
-        <div className="max-w-4xl mx-auto">
+        <div className="max-w-6xl mx-auto">
           <PromptBox 
             prompt={prompt}
             setPrompt={setPrompt}
             onGenerate={generateIdeas}
-            showGrid={showGrid}
+            showGrid={meals.length > 0}
             isGenerating={isGeneratingMeals}
           />
           
-          <OpenAIResponseDisplay 
-            response={openaiResponse}
-            isLoading={isGeneratingMeals}
-            error={generationError}
-          />
-          
-          {showGrid && (
-            <MealGrid 
-              mealIdeas={mealIdeas}
-              onAccept={acceptMeal}
-              onReject={rejectMeal}
-            />
+          {generationError && (
+            <div className="mb-8 p-4 bg-red-50 rounded-lg border border-red-200">
+              <div className="flex items-start gap-3">
+                <div className="w-5 h-5 text-red-600 mt-0.5 flex-shrink-0">⚠️</div>
+                <div>
+                  <h4 className="font-medium text-red-900 mb-1">Error</h4>
+                  <p className="text-red-700">{generationError}</p>
+                </div>
+              </div>
+            </div>
           )}
+          
+          <StructuredMealGrid 
+            meals={meals}
+            onEditMeal={handleEditMeal}
+            onRemoveMeal={handleRemoveMeal}
+            onReorderMeals={handleReorderMeals}
+            isLoading={isGeneratingMeals}
+          />
         </div>
       </main>
       

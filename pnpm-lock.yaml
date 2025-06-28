@@ -13,13 +13,19 @@ importers:
         version: 0.344.0(react@18.3.1)
       openai:
         specifier: ^5.5.1
-        version: 5.5.1(ws@8.18.3)
+        version: 5.5.1(ws@8.18.3)(zod@3.25.67)
       react:
         specifier: ^18.3.1
         version: 18.3.1
       react-dom:
         specifier: ^18.3.1
         version: 18.3.1(react@18.3.1)
+      zod:
+        specifier: ^3.25.67
+        version: 3.25.67
+      zod-to-json-schema:
+        specifier: ^3.24.6
+        version: 3.24.6(zod@3.25.67)
     devDependencies:
       '@eslint/js':
         specifier: ^9.9.1
@@ -2436,6 +2442,14 @@ packages:
     resolution: {integrity: sha512-cYVsTjKl8b+FrnidjibDWskAv7UKOfcwaVZdp/it9n1s9fU3IkgDbhdIRKCW4JDsAlECJY0ytoVPT3sK6kideA==}
     engines: {node: '>=18'}
 
+  zod-to-json-schema@3.24.6:
+    resolution: {integrity: sha512-h/z3PKvcTcTetyjl1fkj79MHNEjm+HpD6NXheWjzOekY7kV+lwDYnHw+ivHkijnCSMz1yJaWBD9vu/Fcmk+vEg==}
+    peerDependencies:
+      zod: ^3.24.1
+
+  zod@3.25.67:
+    resolution: {integrity: sha512-idA2YXwpCdqUSKRCACDE6ItZD9TZzy3OZMtpfLoh6oPR47lipysRrJfjzMqFxQ3uJuUPyUeWe1r9vLH33xO/Qw==}
+
 snapshots:
 
   '@adobe/css-tools@4.4.3': {}
@@ -4071,9 +4085,10 @@ snapshots:
     dependencies:
       wrappy: 1.0.2
 
-  openai@5.5.1(ws@8.18.3):
+  openai@5.5.1(ws@8.18.3)(zod@3.25.67):
     optionalDependencies:
       ws: 8.18.3
+      zod: 3.25.67
 
   optionator@0.9.4:
     dependencies:
@@ -4759,3 +4774,9 @@ snapshots:
   yocto-queue@0.1.0: {}
 
   yoctocolors-cjs@2.1.2: {}
+
+  zod-to-json-schema@3.24.6(zod@3.25.67):
+    dependencies:
+      zod: 3.25.67
+
+  zod@3.25.67: {}

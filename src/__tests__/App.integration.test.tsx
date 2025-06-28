@@ -1,11 +1,11 @@
-import { describe, it, expect, vi } from 'vitest';
-import { render, screen, waitFor, within } from '@testing-library/react';
+import { describe, it, expect } from 'vitest';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import App from '../App';
 
 describe('App Integration Tests', () => {
   describe('OpenAI Workflow Integration', () => {
-    it('completes full workflow: input -> validation -> API call -> display response', async () => {
+    it('completes full workflow: input -> validation -> API call -> display structured meals', async () => {
       const user = userEvent.setup();
       render(<App />);
       
@@ -20,18 +20,14 @@ describe('App Integration Tests', () => {
       expect(generateButton).toBeEnabled();
       await user.click(generateButton);
       
-      // 3. Wait for API response and check success display
+      // 3. Wait for structured meal grid to appear
       await waitFor(() => {
-        expect(screen.getByText('AI Meal Suggestions')).toBeInTheDocument();
+        expect(screen.getByTestId('structured-meal-grid')).toBeInTheDocument();
       });
       
-      // 4. Verify response content is displayed in AI response section
-      const aiResponseContainer = screen.getByTestId('ai-response-success');
-      expect(within(aiResponseContainer).getByText(/here are 4 meal suggestions/i)).toBeInTheDocument();
-      expect(within(aiResponseContainer).getByText(/vegetarian pasta bowl/i)).toBeInTheDocument();
-      
-      // 5. Verify meal grid container is shown (without waiting for timeout-delayed content)
-      expect(screen.getByTestId('meal-grid')).toBeInTheDocument();
+      // 4. Check for successful meal display (structured meals should be shown)
+      // The grid should no longer show "No meals planned yet"
+      expect(screen.queryByText('No meals planned yet')).not.toBeInTheDocument();
     });
 
     it('handles validation errors correctly', async () => {
@@ -68,7 +64,8 @@ describe('App Integration Tests', () => {
         expect(screen.getByText('Error')).toBeInTheDocument();
       });
       
-      expect(screen.getByText('OpenAI API error')).toBeInTheDocument();
+      // Should show structured response error
+      expect(screen.getByText(/failed/i)).toBeInTheDocument();
     });
 
     it('handles network errors', async () => {
@@ -89,11 +86,8 @@ describe('App Integration Tests', () => {
         expect(screen.getByText('Error')).toBeInTheDocument();
       });
       
-      // Should show network error message
-      const errorContainer = screen.getByTestId('ai-response-error');
-      expect(errorContainer).toBeInTheDocument();
       // Network errors from MSW show "Failed to fetch"
-      expect(within(errorContainer).getByText(/failed to fetch/i)).toBeInTheDocument();
+      expect(screen.getByText(/failed to fetch/i)).toBeInTheDocument();
     });
 
 

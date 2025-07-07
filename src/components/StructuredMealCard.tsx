@@ -1,23 +1,25 @@
 import React, { useState } from 'react';
-import { Clock, Users, ChefHat, Edit2, Check, X } from 'lucide-react';
+import { Clock, Users, ChefHat, Edit2, Check } from 'lucide-react';
 import { Meal } from '../types/meal';
 
 interface StructuredMealCardProps {
   meal: Meal;
   onEdit?: (mealId: string, editPrompt: string) => void;
-  onRemove?: (mealId: string) => void;
+  onReroll?: (mealId: string) => void;
   onDragStart?: (mealId: string) => void;
   onDragEnd?: () => void;
   isDragging?: boolean;
+  isRerolling?: boolean;
 }
 
 const StructuredMealCard: React.FC<StructuredMealCardProps> = ({ 
   meal, 
   onEdit, 
-  onRemove,
+  onReroll,
   onDragStart,
   onDragEnd,
-  isDragging = false
+  isDragging = false,
+  isRerolling = false
 }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editPrompt, setEditPrompt] = useState('');
@@ -86,13 +88,14 @@ const StructuredMealCard: React.FC<StructuredMealCardProps> = ({
                 <Edit2 className="w-4 h-4" />
               </button>
             )}
-            {onRemove && (
+            {onReroll && (
               <button
-                onClick={() => onRemove(meal.id)}
-                className="p-2 text-gray-400 hover:text-red-500 transition-colors"
-                title="Remove meal"
+                onClick={() => onReroll(meal.id)}
+                disabled={isRerolling}
+                className="p-2 text-gray-400 hover:text-blue-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                title="Re-roll meal suggestion"
               >
-                <X className="w-4 h-4" />
+                <span className={`text-base ${isRerolling ? 'animate-spin' : ''}`}>🎲</span>
               </button>
             )}
           </div>
@@ -120,29 +123,53 @@ const StructuredMealCard: React.FC<StructuredMealCardProps> = ({
       {/* Ingredients */}
       <div className="p-4 border-b border-gray-100">
         <h4 className="font-medium text-gray-900 mb-2">Ingredients</h4>
-        <ul className="space-y-1">
-          {meal.ingredients.map((ingredient, index) => (
-            <li key={index} className="text-sm text-gray-600 flex">
-              <span className="font-medium min-w-0 flex-1">{ingredient.item}</span>
-              <span className="text-gray-500 ml-2">{ingredient.quantity}</span>
-            </li>
-          ))}
-        </ul>
+        {isRerolling ? (
+          <div className="space-y-1">
+            {[...Array(4)].map((_, index) => (
+              <div key={index} className="text-sm text-gray-600 flex animate-pulse">
+                <div className="h-4 bg-gray-200 rounded flex-1 mr-2"></div>
+                <div className="h-4 bg-gray-200 rounded w-12"></div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <ul className="space-y-1">
+            {meal.ingredients.map((ingredient, index) => (
+              <li key={index} className="text-sm text-gray-600 flex">
+                <span className="font-medium min-w-0 flex-1">{ingredient.item}</span>
+                <span className="text-gray-500 ml-2">{ingredient.quantity}</span>
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
 
       {/* Instructions */}
       <div className="p-4">
         <h4 className="font-medium text-gray-900 mb-2">Instructions</h4>
-        <ol className="space-y-2">
-          {meal.steps.map((step, index) => (
-            <li key={index} className="text-sm text-gray-600 flex">
-              <span className="font-medium text-gray-900 mr-2 min-w-[1.5rem]">
-                {index + 1}.
-              </span>
-              <span>{step}</span>
-            </li>
-          ))}
-        </ol>
+        {isRerolling ? (
+          <div className="space-y-2">
+            {[...Array(5)].map((_, index) => (
+              <div key={index} className="text-sm text-gray-600 flex animate-pulse">
+                <div className="font-medium text-gray-900 mr-2 min-w-[1.5rem]">
+                  {index + 1}.
+                </div>
+                <div className="h-4 bg-gray-200 rounded flex-1"></div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <ol className="space-y-2">
+            {meal.steps.map((step, index) => (
+              <li key={index} className="text-sm text-gray-600 flex">
+                <span className="font-medium text-gray-900 mr-2 min-w-[1.5rem]">
+                  {index + 1}.
+                </span>
+                <span>{step}</span>
+              </li>
+            ))}
+          </ol>
+        )}
       </div>
 
       {/* Edit Modal */}

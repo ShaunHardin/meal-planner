@@ -137,4 +137,135 @@ export const handlers = [
       message: 'Test response from OpenAI API mock' 
     });
   }),
+
+  // Mock reroll meal endpoint
+  http.post('/api/reroll-meal', async ({ request }) => {
+    const { originalPrompt, dayToReroll, existingMealNames } = await request.json() as { 
+      originalPrompt: string, 
+      dayToReroll: string, 
+      existingMealNames: string[] 
+    };
+    
+    // Validate inputs
+    if (!originalPrompt || typeof originalPrompt !== 'string') {
+      return HttpResponse.json({ error: 'Original prompt is required' }, { status: 400 });
+    }
+    
+    if (!dayToReroll || typeof dayToReroll !== 'string') {
+      return HttpResponse.json({ error: 'Day to reroll is required' }, { status: 400 });
+    }
+    
+    if (!Array.isArray(existingMealNames)) {
+      return HttpResponse.json({ error: 'Existing meal names must be an array' }, { status: 400 });
+    }
+    
+    // Simulate different responses based on input
+    if (originalPrompt.includes('network-error')) {
+      return HttpResponse.error();
+    }
+    
+    if (originalPrompt.includes('error')) {
+      return HttpResponse.json({ error: 'Failed to reroll meal suggestion' }, { status: 500 });
+    }
+    
+    // Mock rerolled meal (different based on day)
+    const rerolledMeals = {
+      'Sun': {
+        id: 'reroll-meal-sun',
+        day: 'Sun',
+        name: 'Mediterranean Quinoa Salad',
+        description: 'Fresh and light Mediterranean-inspired quinoa bowl',
+        prepMinutes: 15,
+        cookMinutes: 15,
+        ingredients: [
+          { item: 'Quinoa', quantity: '1 cup' },
+          { item: 'Cucumber', quantity: '1 medium' },
+          { item: 'Cherry tomatoes', quantity: '1 cup' },
+          { item: 'Feta cheese', quantity: '1/2 cup' },
+          { item: 'Olive oil', quantity: '3 tbsp' }
+        ],
+        steps: [
+          'Cook quinoa according to package directions',
+          'Dice cucumber and halve cherry tomatoes',
+          'Mix quinoa with vegetables',
+          'Add crumbled feta and olive oil dressing',
+          'Serve at room temperature'
+        ],
+        tags: ['vegetarian', 'healthy', 'mediterranean']
+      },
+      'Mon': {
+        id: 'reroll-meal-mon',
+        day: 'Mon',
+        name: 'Turkey and Avocado Wrap',
+        description: 'Protein-packed wrap perfect for busy weeknights',
+        prepMinutes: 8,
+        cookMinutes: 0,
+        ingredients: [
+          { item: 'Whole wheat tortilla', quantity: '4 large' },
+          { item: 'Turkey breast', quantity: '8 oz sliced' },
+          { item: 'Avocado', quantity: '2 medium' },
+          { item: 'Mixed greens', quantity: '2 cups' },
+          { item: 'Hummus', quantity: '1/4 cup' }
+        ],
+        steps: [
+          'Spread hummus on tortillas',
+          'Layer turkey slices evenly',
+          'Add sliced avocado and greens',
+          'Roll up tightly',
+          'Cut in half and serve'
+        ],
+        tags: ['protein', 'no-cook', 'quick']
+      },
+      'Wed': {
+        id: 'reroll-meal-wed',
+        day: 'Wed',
+        name: 'Lentil Curry',
+        description: 'Warming and nutritious curry with aromatic spices',
+        prepMinutes: 10,
+        cookMinutes: 25,
+        ingredients: [
+          { item: 'Red lentils', quantity: '1 cup' },
+          { item: 'Coconut milk', quantity: '1 can' },
+          { item: 'Curry powder', quantity: '2 tbsp' },
+          { item: 'Onion', quantity: '1 medium' },
+          { item: 'Basmati rice', quantity: '2 cups cooked' }
+        ],
+        steps: [
+          'Sauté diced onion until soft',
+          'Add curry powder and cook 1 minute',
+          'Add lentils and coconut milk',
+          'Simmer 20 minutes until lentils are tender',
+          'Serve over basmati rice'
+        ],
+        tags: ['vegetarian', 'comfort', 'one-pot']
+      }
+    };
+    
+    const defaultMeal = {
+      id: 'reroll-meal-default',
+      day: dayToReroll,
+      name: 'Quick Scrambled Eggs',
+      description: 'Simple and satisfying meal ready in minutes',
+      prepMinutes: 3,
+      cookMinutes: 5,
+      ingredients: [
+        { item: 'Eggs', quantity: '4 large' },
+        { item: 'Butter', quantity: '2 tbsp' },
+        { item: 'Salt', quantity: 'to taste' },
+        { item: 'Black pepper', quantity: 'to taste' }
+      ],
+      steps: [
+        'Beat eggs in a bowl',
+        'Heat butter in non-stick pan',
+        'Add eggs and stir gently',
+        'Cook until just set',
+        'Season and serve immediately'
+      ],
+      tags: ['breakfast', 'protein', 'quick']
+    };
+    
+    const meal = rerolledMeals[dayToReroll as keyof typeof rerolledMeals] || defaultMeal;
+    
+    return HttpResponse.json({ meal });
+  }),
 ];

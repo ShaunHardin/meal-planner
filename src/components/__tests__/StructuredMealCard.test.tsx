@@ -1,5 +1,5 @@
-import { describe, it, expect } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { describe, it, expect, vi } from 'vitest';
+import { render, screen, fireEvent } from '@testing-library/react';
 import StructuredMealCard from '../StructuredMealCard';
 import type { Meal } from '../../types/meal';
 
@@ -103,5 +103,76 @@ describe('StructuredMealCard', () => {
     
     expect(screen.getByText('Prep: 0m')).toBeInTheDocument();
     expect(screen.getByText('Cook: 0m')).toBeInTheDocument();
+  });
+
+  describe('reroll functionality', () => {
+    it('renders reroll button when onReroll is provided', () => {
+      const mockOnReroll = vi.fn();
+      render(<StructuredMealCard meal={mockMeal} onReroll={mockOnReroll} />);
+      
+      const rerollButton = screen.getByTitle('Re-roll meal suggestion');
+      expect(rerollButton).toBeInTheDocument();
+      expect(rerollButton).toHaveTextContent('🎲');
+    });
+
+    it('calls onReroll when dice button is clicked', () => {
+      const mockOnReroll = vi.fn();
+      render(<StructuredMealCard meal={mockMeal} onReroll={mockOnReroll} />);
+      
+      const rerollButton = screen.getByTitle('Re-roll meal suggestion');
+      fireEvent.click(rerollButton);
+      
+      expect(mockOnReroll).toHaveBeenCalledWith('test-meal-1');
+    });
+
+    it('disables reroll button when isRerolling is true', () => {
+      const mockOnReroll = vi.fn();
+      render(<StructuredMealCard meal={mockMeal} onReroll={mockOnReroll} isRerolling={true} />);
+      
+      const rerollButton = screen.getByTitle('Re-roll meal suggestion');
+      expect(rerollButton).toBeDisabled();
+    });
+
+    it('shows spinning animation when isRerolling is true', () => {
+      const mockOnReroll = vi.fn();
+      render(<StructuredMealCard meal={mockMeal} onReroll={mockOnReroll} isRerolling={true} />);
+      
+      const dice = screen.getByText('🎲');
+      expect(dice).toHaveClass('animate-spin');
+    });
+
+    it('shows loading placeholders for ingredients when isRerolling is true', () => {
+      const mockOnReroll = vi.fn();
+      render(<StructuredMealCard meal={mockMeal} onReroll={mockOnReroll} isRerolling={true} />);
+      
+      // Should show loading placeholders instead of actual ingredients
+      expect(screen.queryByText('chicken breast')).not.toBeInTheDocument();
+      expect(screen.queryByText('2 pieces')).not.toBeInTheDocument();
+      
+      // Should show loading placeholders
+      const placeholders = screen.getAllByText('', { selector: 'div.h-4.bg-gray-200.rounded' });
+      expect(placeholders.length).toBeGreaterThan(0);
+    });
+
+    it('shows loading placeholders for instructions when isRerolling is true', () => {
+      const mockOnReroll = vi.fn();
+      render(<StructuredMealCard meal={mockMeal} onReroll={mockOnReroll} isRerolling={true} />);
+      
+      // Should show loading placeholders instead of actual steps
+      expect(screen.queryByText('Season chicken with salt and pepper')).not.toBeInTheDocument();
+      expect(screen.queryByText('Grill chicken for 6-7 minutes per side')).not.toBeInTheDocument();
+      
+      // Should show numbered placeholders
+      expect(screen.getByText('1.')).toBeInTheDocument();
+      expect(screen.getByText('2.')).toBeInTheDocument();
+      expect(screen.getByText('3.')).toBeInTheDocument();
+    });
+
+    it('does not render reroll button when onReroll is not provided', () => {
+      render(<StructuredMealCard meal={mockMeal} />);
+      
+      const rerollButton = screen.queryByTitle('Re-roll meal suggestion');
+      expect(rerollButton).not.toBeInTheDocument();
+    });
   });
 });

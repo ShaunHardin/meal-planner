@@ -1,6 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { MealPlannerAI } from '../openai';
-import type { Meal } from '../../types/meal';
 
 // Mock OpenAI
 const mockOpenAI = {

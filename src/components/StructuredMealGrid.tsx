@@ -5,17 +5,19 @@ import { Meal } from '../types/meal';
 interface StructuredMealGridProps {
   meals: Meal[];
   onEditMeal?: (mealId: string, editPrompt: string) => void;
-  onRemoveMeal?: (mealId: string) => void;
+  onRerollMeal?: (mealId: string) => void;
   onReorderMeals?: (reorderedMeals: Meal[]) => void;
   isLoading?: boolean;
+  rerollLoadingStates?: Record<string, boolean>;
 }
 
 const StructuredMealGrid: React.FC<StructuredMealGridProps> = ({ 
   meals, 
   onEditMeal, 
-  onRemoveMeal,
+  onRerollMeal,
   onReorderMeals,
-  isLoading = false 
+  isLoading = false,
+  rerollLoadingStates = {}
 }) => {
   const [draggedMealId, setDraggedMealId] = useState<string | null>(null);
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
@@ -130,10 +132,11 @@ const StructuredMealGrid: React.FC<StructuredMealGridProps> = ({
             <StructuredMealCard
               meal={meal}
               onEdit={onEditMeal}
-              onRemove={onRemoveMeal}
+              onReroll={onRerollMeal}
               onDragStart={handleDragStart}
               onDragEnd={handleDragEnd}
               isDragging={draggedMealId === meal.id}
+              isRerolling={rerollLoadingStates[meal.id] || false}
             />
           </div>
         ))}

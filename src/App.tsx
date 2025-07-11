@@ -3,6 +3,8 @@ import Header from './components/Header';
 import PromptBox from './components/PromptBox';
 import StructuredMealGrid from './components/StructuredMealGrid';
 import Footer from './components/Footer';
+import AIChefLoading from './components/AIChefLoading';
+import QuickLoadingSpinner from './components/QuickLoadingSpinner';
 import { Meal } from './types/meal';
 
 interface ConversationHistory {
@@ -182,14 +184,20 @@ function App() {
             </div>
           )}
           
-          <StructuredMealGrid 
-            meals={meals}
-            onEditMeal={handleEditMeal}
-            onRerollMeal={handleRerollMeal}
-            onReorderMeals={handleReorderMeals}
-            isLoading={isGeneratingMeals}
-            rerollLoadingStates={rerollLoadingStates}
-          />
+          {isGeneratingMeals && meals.length === 0 ? (
+            <AIChefLoading />
+          ) : isGeneratingMeals && meals.length > 0 ? (
+            <QuickLoadingSpinner />
+          ) : (
+            <StructuredMealGrid 
+              meals={meals}
+              onEditMeal={handleEditMeal}
+              onRerollMeal={handleRerollMeal}
+              onReorderMeals={handleReorderMeals}
+              isLoading={isGeneratingMeals}
+              rerollLoadingStates={rerollLoadingStates}
+            />
+          )}
         </div>
       </main>
       

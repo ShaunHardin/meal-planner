@@ -139,18 +139,10 @@ function App() {
     setMeals(reorderedMeals);
   };
 
-  const clearMeals = () => {
-    setMeals([]);
-    setConversationHistory([]);
-    setGenerationError(null);
-    setOriginalPrompt('');
-    setRerollLoadingStates({});
-    setToastMessage(null);
-  };
 
   return (
     <div className="min-h-screen bg-white font-inter">
-      <Header onShuffleAll={clearMeals} showShuffle={meals.length > 0} />
+      <Header />
       
       <main className="container mx-auto px-6 py-8">
         <div className="max-w-6xl mx-auto">

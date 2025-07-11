@@ -141,31 +141,37 @@ describe('StructuredMealCard', () => {
       expect(dice).toHaveClass('animate-spin');
     });
 
-    it('shows loading placeholders for ingredients when isRerolling is true', () => {
+    it('shows slot machine animation when isRerolling is true', () => {
       const mockOnReroll = vi.fn();
       render(<StructuredMealCard meal={mockMeal} onReroll={mockOnReroll} isRerolling={true} />);
       
-      // Should show loading placeholders instead of actual ingredients
+      // Should show slot machine animation instead of meal content
+      expect(screen.getByText('Generating new meal suggestion...')).toBeInTheDocument();
+      
+      // Should not show meal details
       expect(screen.queryByText('chicken breast')).not.toBeInTheDocument();
       expect(screen.queryByText('2 pieces')).not.toBeInTheDocument();
-      
-      // Should show loading placeholders
-      const placeholders = screen.getAllByText('', { selector: 'div.h-4.bg-gray-200.rounded' });
-      expect(placeholders.length).toBeGreaterThan(0);
-    });
-
-    it('shows loading placeholders for instructions when isRerolling is true', () => {
-      const mockOnReroll = vi.fn();
-      render(<StructuredMealCard meal={mockMeal} onReroll={mockOnReroll} isRerolling={true} />);
-      
-      // Should show loading placeholders instead of actual steps
       expect(screen.queryByText('Season chicken with salt and pepper')).not.toBeInTheDocument();
       expect(screen.queryByText('Grill chicken for 6-7 minutes per side')).not.toBeInTheDocument();
       
-      // Should show numbered placeholders
-      expect(screen.getByText('1.')).toBeInTheDocument();
-      expect(screen.getByText('2.')).toBeInTheDocument();
-      expect(screen.getByText('3.')).toBeInTheDocument();
+      // Should not show meal name and description
+      expect(screen.queryByText('Grilled Chicken Salad')).not.toBeInTheDocument();
+      expect(screen.queryByText('A healthy and delicious grilled chicken salad with mixed greens')).not.toBeInTheDocument();
+    });
+
+    it('hides meal content sections when isRerolling is true', () => {
+      const mockOnReroll = vi.fn();
+      render(<StructuredMealCard meal={mockMeal} onReroll={mockOnReroll} isRerolling={true} />);
+      
+      // Should not show timing information
+      expect(screen.queryByText('Prep: 15m')).not.toBeInTheDocument();
+      expect(screen.queryByText('Cook: 20m')).not.toBeInTheDocument();
+      
+      // Should not show ingredients section
+      expect(screen.queryByText('Ingredients')).not.toBeInTheDocument();
+      
+      // Should not show instructions section
+      expect(screen.queryByText('Instructions')).not.toBeInTheDocument();
     });
 
     it('does not render reroll button when onReroll is not provided', () => {

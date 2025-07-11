@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Clock, Users, ChefHat, Edit2, Check } from 'lucide-react';
 import { Meal } from '../types/meal';
+import SlotMachineAnim from './SlotMachineAnim';
 
 interface StructuredMealCardProps {
   meal: Meal;
@@ -61,25 +62,34 @@ const StructuredMealCard: React.FC<StructuredMealCardProps> = ({
       <div className="p-4 border-b border-gray-100">
         <div className="flex items-start justify-between">
           <div className="flex-1">
-            <div className="flex items-center gap-2 mb-2">
-              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                {meal.day}
-              </span>
-              {meal.tags?.map((tag, index) => (
-                <span 
-                  key={index}
-                  className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800"
-                >
-                  {tag}
-                </span>
-              ))}
-            </div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-1">{meal.name}</h3>
-            <p className="text-gray-600 text-sm">{meal.description}</p>
+            {isRerolling ? (
+              <div className="flex flex-col items-center justify-center py-8">
+                <SlotMachineAnim isSpinning={isRerolling} />
+                <p className="text-gray-500 text-sm mt-4">Generating new meal suggestion...</p>
+              </div>
+            ) : (
+              <>
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                    {meal.day}
+                  </span>
+                  {meal.tags?.map((tag, index) => (
+                    <span 
+                      key={index}
+                      className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800"
+                    >
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-1">{meal.name}</h3>
+                <p className="text-gray-600 text-sm">{meal.description}</p>
+              </>
+            )}
           </div>
           
           <div className="flex items-center gap-2 ml-4">
-            {onEdit && (
+            {onEdit && !isRerolling && (
               <button
                 onClick={() => setIsEditing(true)}
                 className="p-2 text-gray-400 hover:text-gray-600 transition-colors"
@@ -103,36 +113,29 @@ const StructuredMealCard: React.FC<StructuredMealCardProps> = ({
       </div>
 
       {/* Timing */}
-      <div className="px-4 py-3 bg-gray-50 border-b border-gray-100">
-        <div className="flex items-center gap-4 text-sm text-gray-600">
-          <div className="flex items-center gap-1">
-            <ChefHat className="w-4 h-4" />
-            <span>Prep: {meal.prepMinutes}m</span>
-          </div>
-          <div className="flex items-center gap-1">
-            <Clock className="w-4 h-4" />
-            <span>Cook: {meal.cookMinutes}m</span>
-          </div>
-          <div className="flex items-center gap-1">
-            <Users className="w-4 h-4" />
-            <span>Total: {totalTime}m</span>
+      {!isRerolling && (
+        <div className="px-4 py-3 bg-gray-50 border-b border-gray-100">
+          <div className="flex items-center gap-4 text-sm text-gray-600">
+            <div className="flex items-center gap-1">
+              <ChefHat className="w-4 h-4" />
+              <span>Prep: {meal.prepMinutes}m</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <Clock className="w-4 h-4" />
+              <span>Cook: {meal.cookMinutes}m</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <Users className="w-4 h-4" />
+              <span>Total: {totalTime}m</span>
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
       {/* Ingredients */}
-      <div className="p-4 border-b border-gray-100">
-        <h4 className="font-medium text-gray-900 mb-2">Ingredients</h4>
-        {isRerolling ? (
-          <div className="space-y-1">
-            {[...Array(4)].map((_, index) => (
-              <div key={index} className="text-sm text-gray-600 flex animate-pulse">
-                <div className="h-4 bg-gray-200 rounded flex-1 mr-2"></div>
-                <div className="h-4 bg-gray-200 rounded w-12"></div>
-              </div>
-            ))}
-          </div>
-        ) : (
+      {!isRerolling && (
+        <div className="p-4 border-b border-gray-100">
+          <h4 className="font-medium text-gray-900 mb-2">Ingredients</h4>
           <ul className="space-y-1">
             {meal.ingredients.map((ingredient, index) => (
               <li key={index} className="text-sm text-gray-600 flex">
@@ -141,24 +144,13 @@ const StructuredMealCard: React.FC<StructuredMealCardProps> = ({
               </li>
             ))}
           </ul>
-        )}
-      </div>
+        </div>
+      )}
 
       {/* Instructions */}
-      <div className="p-4">
-        <h4 className="font-medium text-gray-900 mb-2">Instructions</h4>
-        {isRerolling ? (
-          <div className="space-y-2">
-            {[...Array(5)].map((_, index) => (
-              <div key={index} className="text-sm text-gray-600 flex animate-pulse">
-                <div className="font-medium text-gray-900 mr-2 min-w-[1.5rem]">
-                  {index + 1}.
-                </div>
-                <div className="h-4 bg-gray-200 rounded flex-1"></div>
-              </div>
-            ))}
-          </div>
-        ) : (
+      {!isRerolling && (
+        <div className="p-4">
+          <h4 className="font-medium text-gray-900 mb-2">Instructions</h4>
           <ol className="space-y-2">
             {meal.steps.map((step, index) => (
               <li key={index} className="text-sm text-gray-600 flex">
@@ -169,8 +161,8 @@ const StructuredMealCard: React.FC<StructuredMealCardProps> = ({
               </li>
             ))}
           </ol>
-        )}
-      </div>
+        </div>
+      )}
 
       {/* Edit Modal */}
       {isEditing && (

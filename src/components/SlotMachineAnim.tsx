@@ -1,39 +1,37 @@
 import React, { useState, useEffect } from 'react';
 
-const foodEmojis = ['🍅', '🥦', '🧀', '🌽', '🍄', '🥕', '🫑', '🥒'];
+const foodEmojis = ['🍅', '🥦', '🧀', '🌽', '🍄', '🥕', '🫑', '🥒', '🍖', '🍗', '🥩', '🍳', '🥓', '🍞', '🥖', '🫓', '🥨', '🥯', '🧈', '🥞', '🧇', '🍝', '🍜', '🍲', '🥗', '🍱', '🍘', '🍙', '🍚', '🍛', '🍣', '🍤', '🍥', '🥮', '🍢', '🍡', '🍧', '🍨', '🍦', '🥧', '🧁', '🍰', '🎂', '🍮', '🍭', '🍬', '🍫', '🍿', '🍩', '🍪', '🌰', '🥜', '🫘', '🌶️', '🍎', '🍏', '🍊', '🍋', '🍌', '🍉', '🍇', '🍓', '🫐', '🍈', '🍒', '🍑', '🥭', '🍍', '🥥', '🥝', '🍆', '🥑', '🥬', '🥒', '🌶️', '🫒', '🥔', '🍠', '🥐', '🥚', '🧄', '🧅', '🫚'];
 
-const SlotMachineAnim: React.FC = () => {
-  const [slots, setSlots] = useState([0, 0, 0]);
-  const [isSpinning, setIsSpinning] = useState(true);
+interface SlotMachineAnimProps {
+  isSpinning?: boolean;
+}
+
+const SlotMachineAnim: React.FC<SlotMachineAnimProps> = ({ isSpinning = true }) => {
+  const [slots, setSlots] = useState([0, 0, 0, 0, 0]);
 
   useEffect(() => {
     if (!isSpinning) return;
 
     const interval = setInterval(() => {
       setSlots(prev => prev.map(() => Math.floor(Math.random() * foodEmojis.length)));
-    }, 150);
+    }, 100);
 
     return () => clearInterval(interval);
   }, [isSpinning]);
 
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsSpinning(false);
-    }, 600);
-
-    return () => clearTimeout(timer);
-  }, []);
-
   return (
-    <div className="flex items-center justify-center gap-2">
+    <div className="flex items-center justify-center gap-1">
       {slots.map((slotIndex, index) => (
         <div
           key={index}
-          className={`w-12 h-12 flex items-center justify-center text-2xl transition-transform duration-150 ${
-            isSpinning ? 'animate-bounce' : ''
+          className={`w-14 h-14 flex items-center justify-center text-3xl transition-all duration-100 rounded-lg border-2 ${
+            isSpinning 
+              ? 'animate-bounce border-blue-300 bg-blue-50 shadow-lg' 
+              : 'border-gray-200 bg-white'
           }`}
           style={{
-            animationDelay: `${index * 50}ms`
+            animationDelay: `${index * 100}ms`,
+            transform: isSpinning ? 'scale(1.1)' : 'scale(1)'
           }}
         >
           {foodEmojis[slotIndex]}

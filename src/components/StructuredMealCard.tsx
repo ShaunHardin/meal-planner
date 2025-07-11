@@ -1,23 +1,26 @@
 import React, { useState } from 'react';
-import { Clock, Users, ChefHat, Edit2, Check, X } from 'lucide-react';
+import { Clock, Users, ChefHat, Edit2, Check } from 'lucide-react';
 import { Meal } from '../types/meal';
+import SlotMachineAnim from './SlotMachineAnim';
 
 interface StructuredMealCardProps {
   meal: Meal;
   onEdit?: (mealId: string, editPrompt: string) => void;
-  onRemove?: (mealId: string) => void;
+  onReroll?: (mealId: string) => void;
   onDragStart?: (mealId: string) => void;
   onDragEnd?: () => void;
   isDragging?: boolean;
+  isRerolling?: boolean;
 }
 
 const StructuredMealCard: React.FC<StructuredMealCardProps> = ({ 
   meal, 
   onEdit, 
-  onRemove,
+  onReroll,
   onDragStart,
   onDragEnd,
-  isDragging = false
+  isDragging = false,
+  isRerolling = false
 }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editPrompt, setEditPrompt] = useState('');
@@ -59,25 +62,34 @@ const StructuredMealCard: React.FC<StructuredMealCardProps> = ({
       <div className="p-4 border-b border-gray-100">
         <div className="flex items-start justify-between">
           <div className="flex-1">
-            <div className="flex items-center gap-2 mb-2">
-              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                {meal.day}
-              </span>
-              {meal.tags?.map((tag, index) => (
-                <span 
-                  key={index}
-                  className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800"
-                >
-                  {tag}
-                </span>
-              ))}
-            </div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-1">{meal.name}</h3>
-            <p className="text-gray-600 text-sm">{meal.description}</p>
+            {isRerolling ? (
+              <div className="flex flex-col items-center justify-center py-8">
+                <SlotMachineAnim isSpinning={isRerolling} />
+                <p className="text-gray-500 text-sm mt-4">Generating new meal suggestion...</p>
+              </div>
+            ) : (
+              <>
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                    {meal.day}
+                  </span>
+                  {meal.tags?.map((tag, index) => (
+                    <span 
+                      key={index}
+                      className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800"
+                    >
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-1">{meal.name}</h3>
+                <p className="text-gray-600 text-sm">{meal.description}</p>
+              </>
+            )}
           </div>
           
           <div className="flex items-center gap-2 ml-4">
-            {onEdit && (
+            {onEdit && !isRerolling && (
               <button
                 onClick={() => setIsEditing(true)}
                 className="p-2 text-gray-400 hover:text-gray-600 transition-colors"
@@ -86,13 +98,14 @@ const StructuredMealCard: React.FC<StructuredMealCardProps> = ({
                 <Edit2 className="w-4 h-4" />
               </button>
             )}
-            {onRemove && (
+            {onReroll && (
               <button
-                onClick={() => onRemove(meal.id)}
-                className="p-2 text-gray-400 hover:text-red-500 transition-colors"
-                title="Remove meal"
+                onClick={() => onReroll(meal.id)}
+                disabled={isRerolling}
+                className="p-2 text-gray-400 hover:text-blue-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                title="Re-roll meal suggestion"
               >
-                <X className="w-4 h-4" />
+                <span className={`text-base ${isRerolling ? 'animate-spin' : ''}`}>🎲</span>
               </button>
             )}
           </div>
@@ -100,50 +113,56 @@ const StructuredMealCard: React.FC<StructuredMealCardProps> = ({
       </div>
 
       {/* Timing */}
-      <div className="px-4 py-3 bg-gray-50 border-b border-gray-100">
-        <div className="flex items-center gap-4 text-sm text-gray-600">
-          <div className="flex items-center gap-1">
-            <ChefHat className="w-4 h-4" />
-            <span>Prep: {meal.prepMinutes}m</span>
-          </div>
-          <div className="flex items-center gap-1">
-            <Clock className="w-4 h-4" />
-            <span>Cook: {meal.cookMinutes}m</span>
-          </div>
-          <div className="flex items-center gap-1">
-            <Users className="w-4 h-4" />
-            <span>Total: {totalTime}m</span>
+      {!isRerolling && (
+        <div className="px-4 py-3 bg-gray-50 border-b border-gray-100">
+          <div className="flex items-center gap-4 text-sm text-gray-600">
+            <div className="flex items-center gap-1">
+              <ChefHat className="w-4 h-4" />
+              <span>Prep: {meal.prepMinutes}m</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <Clock className="w-4 h-4" />
+              <span>Cook: {meal.cookMinutes}m</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <Users className="w-4 h-4" />
+              <span>Total: {totalTime}m</span>
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
       {/* Ingredients */}
-      <div className="p-4 border-b border-gray-100">
-        <h4 className="font-medium text-gray-900 mb-2">Ingredients</h4>
-        <ul className="space-y-1">
-          {meal.ingredients.map((ingredient, index) => (
-            <li key={index} className="text-sm text-gray-600 flex">
-              <span className="font-medium min-w-0 flex-1">{ingredient.item}</span>
-              <span className="text-gray-500 ml-2">{ingredient.quantity}</span>
-            </li>
-          ))}
-        </ul>
-      </div>
+      {!isRerolling && (
+        <div className="p-4 border-b border-gray-100">
+          <h4 className="font-medium text-gray-900 mb-2">Ingredients</h4>
+          <ul className="space-y-1">
+            {meal.ingredients.map((ingredient, index) => (
+              <li key={index} className="text-sm text-gray-600 flex">
+                <span className="font-medium min-w-0 flex-1">{ingredient.item}</span>
+                <span className="text-gray-500 ml-2">{ingredient.quantity}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       {/* Instructions */}
-      <div className="p-4">
-        <h4 className="font-medium text-gray-900 mb-2">Instructions</h4>
-        <ol className="space-y-2">
-          {meal.steps.map((step, index) => (
-            <li key={index} className="text-sm text-gray-600 flex">
-              <span className="font-medium text-gray-900 mr-2 min-w-[1.5rem]">
-                {index + 1}.
-              </span>
-              <span>{step}</span>
-            </li>
-          ))}
-        </ol>
-      </div>
+      {!isRerolling && (
+        <div className="p-4">
+          <h4 className="font-medium text-gray-900 mb-2">Instructions</h4>
+          <ol className="space-y-2">
+            {meal.steps.map((step, index) => (
+              <li key={index} className="text-sm text-gray-600 flex">
+                <span className="font-medium text-gray-900 mr-2 min-w-[1.5rem]">
+                  {index + 1}.
+                </span>
+                <span>{step}</span>
+              </li>
+            ))}
+          </ol>
+        </div>
+      )}
 
       {/* Edit Modal */}
       {isEditing && (

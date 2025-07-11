@@ -13,8 +13,11 @@ interface ConversationHistory {
 function App() {
   const [meals, setMeals] = useState<Meal[]>([]);
   const [prompt, setPrompt] = useState('');
+  const [originalPrompt, setOriginalPrompt] = useState('');
   const [isGeneratingMeals, setIsGeneratingMeals] = useState(false);
+  const [rerollLoadingStates, setRerollLoadingStates] = useState<Record<string, boolean>>({});
   const [generationError, setGenerationError] = useState<string | null>(null);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [conversationHistory, setConversationHistory] = useState<ConversationHistory[]>([]);
 
   const generateIdeas = async () => {
@@ -40,6 +43,7 @@ function App() {
       if (response.ok) {
         setMeals(data.meals || []);
         setConversationHistory(data.history || []);
+        setOriginalPrompt(prompt.trim());
       } else {
         throw new Error(data.error || 'Failed to generate meal suggestions');
       }
@@ -85,23 +89,60 @@ function App() {
     }
   };
 
-  const handleRemoveMeal = (mealId: string) => {
-    setMeals(prev => prev.filter(meal => meal.id !== mealId));
+
+  const handleRerollMeal = async (mealId: string) => {
+    const mealToReroll = meals.find(meal => meal.id === mealId);
+    if (!mealToReroll || !originalPrompt) return;
+
+    // Set loading state for this specific meal
+    setRerollLoadingStates(prev => ({ ...prev, [mealId]: true }));
+    setToastMessage(null);
+
+    try {
+      const existingMealNames = meals
+        .filter(meal => meal.id !== mealId)
+        .map(meal => meal.name);
+
+      const response = await fetch('/api/reroll-meal', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          originalPrompt,
+          dayToReroll: mealToReroll.day,
+          existingMealNames,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        // Replace the meal in the array
+        setMeals(prev => prev.map(meal => 
+          meal.id === mealId ? { ...data.meal, id: mealId } : meal
+        ));
+      } else {
+        throw new Error(data.error || 'Failed to reroll meal');
+      }
+    } catch {
+      setToastMessage("Couldn't fetch a new idea – try again");
+      
+      // Auto-hide toast after 3 seconds
+      setTimeout(() => setToastMessage(null), 3000);
+    } finally {
+      setRerollLoadingStates(prev => ({ ...prev, [mealId]: false }));
+    }
   };
 
   const handleReorderMeals = (reorderedMeals: Meal[]) => {
     setMeals(reorderedMeals);
   };
 
-  const clearMeals = () => {
-    setMeals([]);
-    setConversationHistory([]);
-    setGenerationError(null);
-  };
 
   return (
     <div className="min-h-screen bg-white font-inter">
-      <Header onShuffleAll={clearMeals} showShuffle={meals.length > 0} />
+      <Header />
       
       <main className="container mx-auto px-6 py-8">
         <div className="max-w-6xl mx-auto">
@@ -125,12 +166,25 @@ function App() {
             </div>
           )}
           
+          {toastMessage && (
+            <div className="mb-8 p-4 bg-orange-50 rounded-lg border border-orange-200">
+              <div className="flex items-start gap-3">
+                <div className="w-5 h-5 text-orange-600 mt-0.5 flex-shrink-0">🎲</div>
+                <div>
+                  <h4 className="font-medium text-orange-900 mb-1">Reroll Failed</h4>
+                  <p className="text-orange-700">{toastMessage}</p>
+                </div>
+              </div>
+            </div>
+          )}
+          
           <StructuredMealGrid 
             meals={meals}
             onEditMeal={handleEditMeal}
-            onRemoveMeal={handleRemoveMeal}
+            onRerollMeal={handleRerollMeal}
             onReorderMeals={handleReorderMeals}
             isLoading={isGeneratingMeals}
+            rerollLoadingStates={rerollLoadingStates}
           />
         </div>
       </main>

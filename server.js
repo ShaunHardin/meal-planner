@@ -278,6 +278,118 @@ app.post('/generate-meals', async (req, res) => {
   }
 });
 
+app.post('/reroll-meal', async (req, res) => {
+  const { originalPrompt, dayToReroll, existingMealNames } = req.body;
+  
+  // Validate inputs
+  if (!originalPrompt || typeof originalPrompt !== 'string') {
+    return res.status(400).json({ error: 'Original prompt is required' });
+  }
+  
+  if (!dayToReroll || typeof dayToReroll !== 'string') {
+    return res.status(400).json({ error: 'Day to reroll is required' });
+  }
+  
+  if (!Array.isArray(existingMealNames)) {
+    return res.status(400).json({ error: 'Existing meal names must be an array' });
+  }
+  
+  const apiKey = process.env.OPENAI_API_KEY;
+  if (!apiKey) {
+    return res.status(500).json({ error: 'OpenAI API key not configured' });
+  }
+  
+  try {
+    const openai = new OpenAI({ apiKey });
+    
+    // Build reroll prompt
+    const rerollPrompt = `Replace the ${dayToReroll} meal with ONE different meal suggestion. Original request: "${originalPrompt}". Avoid duplicating these existing meals: ${existingMealNames.join(', ')}. Return exactly one meal for ${dayToReroll}.`;
+    
+    const jsonSchema = {
+      type: "object",
+      properties: {
+        meals: {
+          type: "array",
+          items: {
+            type: "object",
+            properties: {
+              id: { type: "string" },
+              day: { 
+                type: "string", 
+                enum: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"] 
+              },
+              name: { type: "string" },
+              description: { type: "string" },
+              prepMinutes: { type: "number" },
+              cookMinutes: { type: "number" },
+              ingredients: {
+                type: "array",
+                items: {
+                  type: "object",
+                  properties: {
+                    item: { type: "string" },
+                    quantity: { type: "string" }
+                  },
+                  required: ["item", "quantity"],
+                  additionalProperties: false
+                },
+                minItems: 1
+              },
+              steps: {
+                type: "array",
+                items: { type: "string" },
+                minItems: 1
+              }
+            },
+            required: ["id", "day", "name", "description", "prepMinutes", "cookMinutes", "ingredients", "steps"],
+            additionalProperties: false
+          }
+        }
+      },
+      required: ["meals"],
+      additionalProperties: false
+    };
+    
+    const response = await openai.responses.create({
+      model: 'gpt-4o-mini',
+      instructions: 'You are an expert meal-planning engine. Return ONLY JSON that matches the schema. Return an object with a "meals" array containing exactly one meal object for the specified day.',
+      text: {
+        format: {
+          type: "json_schema",
+          name: "meals",
+          schema: jsonSchema,
+        }
+      },
+      input: rerollPrompt,
+    });
+    
+    const outputText = response.output_text;
+    if (!outputText) {
+      throw new Error('No output received from OpenAI');
+    }
+    
+    // Parse and validate the response
+    const parsedData = JSON.parse(outputText);
+    const validatedResponse = MealsResponse.parse(parsedData);
+    const meals = validatedResponse.meals;
+    
+    // Find the meal for the requested day, or use the first meal
+    const rerolledMeal = meals.find(meal => meal.day === dayToReroll) || meals[0];
+    
+    if (!rerolledMeal) {
+      throw new Error('No meal generated for reroll');
+    }
+    
+    return res.status(200).json({ meal: rerolledMeal });
+  } catch (error) {
+    console.error('OpenAI API error during reroll:', error);
+    
+    return res.status(500).json({ 
+      error: error.message || 'Failed to reroll meal suggestion' 
+    });
+  }
+});
+
 app.listen(port, () => {
   console.log(`API server running on http://localhost:${port}`);
 });

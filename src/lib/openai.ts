@@ -125,6 +125,25 @@ export class MealPlannerAI {
     return this.generateMeals(editPrompt);
   }
 
+  async rerollSingleMeal(
+    originalPrompt: string,
+    dayToReroll: string,
+    existingMealNames: string[]
+  ): Promise<Meal> {
+    const rerollPrompt = `Replace the ${dayToReroll} meal with ONE different meal suggestion. Original request: "${originalPrompt}". Avoid duplicating these existing meals: ${existingMealNames.join(', ')}. Return exactly one meal for ${dayToReroll}.`;
+    
+    const meals = await this.generateMeals(rerollPrompt);
+    
+    // Find the meal for the requested day, or return the first meal if no day match
+    const rerolledMeal = meals.find(meal => meal.day === dayToReroll) || meals[0];
+    
+    if (!rerolledMeal) {
+      throw new Error('No meal generated for reroll');
+    }
+    
+    return rerolledMeal;
+  }
+
   clearHistory(): void {
     this.history = [];
   }

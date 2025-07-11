@@ -45,14 +45,10 @@ const MEAL_JSON_SCHEMA = {
             type: "array",
             items: { type: "string" },
             minItems: 1
-          },
-          tags: {
-            type: "array",
-            items: { type: "string" }
           }
         },
         required: ["id", "day", "name", "description", "prepMinutes", "cookMinutes", "ingredients", "steps"],
-        additionalProperties: false
+        additionalProperties: true
       }
     }
   },
@@ -61,7 +57,7 @@ const MEAL_JSON_SCHEMA = {
 };
 
 // Optimized instructions for faster response
-const MEAL_INSTRUCTIONS = "You are an expert meal-planning engine. Return ONLY JSON that matches the schema. Be concise but complete. Each meal needs: unique ID, day, name, description, prep/cook minutes, ingredients list, and cooking steps.";
+const MEAL_INSTRUCTIONS = "You are an expert meal-planning engine. Return ONLY JSON that matches the schema. Be concise but complete. Each meal needs: unique ID, day, name, description, prep/cook minutes, ingredients list, and cooking steps. You may optionally add a 'tags' array with relevant descriptive tags.";
 
 // Initialize OpenAI client with performance optimizations
 const createOptimizedOpenAIClient = (apiKey) => {

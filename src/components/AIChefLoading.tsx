@@ -69,7 +69,11 @@ const loadingStages: LoadingStage[] = [
   }
 ];
 
-const AIChefLoading: React.FC = () => {
+interface AIChefLoadingProps {
+  startTime?: number; // When the API request started
+}
+
+const AIChefLoading: React.FC<AIChefLoadingProps> = ({ startTime }) => {
   const [currentStageIndex, setCurrentStageIndex] = useState(0);
   const [progress, setProgress] = useState(0);
   const [stageProgress, setStageProgress] = useState(0);
@@ -77,44 +81,54 @@ const AIChefLoading: React.FC = () => {
 
   useEffect(() => {
     const totalDuration = loadingStages.reduce((sum, stage) => sum + stage.duration, 0);
+    const requestStartTime = startTime || Date.now();
     
     const interval = setInterval(() => {
-      setProgress(prev => {
-        const newProgress = Math.min(prev + (100 / (totalDuration * 10)), 100);
-        
-        // Calculate which stage we should be in
-        let accumulatedTime = 0;
-        let newStageIndex = 0;
-        
-        for (let i = 0; i < loadingStages.length; i++) {
-          accumulatedTime += loadingStages[i].duration;
-          if ((newProgress / 100) * totalDuration <= accumulatedTime) {
-            newStageIndex = i;
-            break;
-          }
+      const elapsedTime = (Date.now() - requestStartTime) / 1000; // seconds
+      
+      // Calculate progress based on elapsed time, but cap at reasonable duration
+      const maxDuration = Math.max(totalDuration, 30); // At least 30 seconds
+      const timeProgress = Math.min(elapsedTime / maxDuration, 1);
+      
+      // Use a combination of time-based and stage-based progress
+      // This ensures we show realistic progress while keeping stages engaging
+      const adaptiveProgress = Math.min(timeProgress * 100, 95); // Keep some buffer for final stage
+      
+      setProgress(adaptiveProgress);
+      
+      // Calculate which stage we should be in based on elapsed time
+      let accumulatedTime = 0;
+      let newStageIndex = 0;
+      
+      for (let i = 0; i < loadingStages.length; i++) {
+        accumulatedTime += loadingStages[i].duration;
+        if (elapsedTime <= accumulatedTime) {
+          newStageIndex = i;
+          break;
         }
-        
-        // Update stage if changed
-        if (newStageIndex !== currentStageIndex) {
-          setCurrentStageIndex(newStageIndex);
-          // Mark previous stages as completed
-          const newCompleted = loadingStages.slice(0, newStageIndex).map(stage => stage.id);
-          setCompletedStages(newCompleted);
-        }
-        
-        // Calculate progress within current stage
-        const stageStart = loadingStages.slice(0, newStageIndex).reduce((sum, stage) => sum + stage.duration, 0);
-        const stageEnd = stageStart + loadingStages[newStageIndex].duration;
-        const currentTime = (newProgress / 100) * totalDuration;
-        const stageProgressPercent = ((currentTime - stageStart) / loadingStages[newStageIndex].duration) * 100;
-        setStageProgress(Math.min(Math.max(stageProgressPercent, 0), 100));
-        
-        return newProgress;
-      });
+      }
+      
+      // If we've exceeded the planned duration, stay on the last stage
+      if (elapsedTime > totalDuration) {
+        newStageIndex = loadingStages.length - 1;
+      }
+      
+      // Update stage if changed
+      if (newStageIndex !== currentStageIndex) {
+        setCurrentStageIndex(newStageIndex);
+        // Mark previous stages as completed
+        const newCompleted = loadingStages.slice(0, newStageIndex).map(stage => stage.id);
+        setCompletedStages(newCompleted);
+      }
+      
+      // Calculate progress within current stage
+      const stageStart = loadingStages.slice(0, newStageIndex).reduce((sum, stage) => sum + stage.duration, 0);
+      const stageProgressPercent = ((elapsedTime - stageStart) / loadingStages[newStageIndex].duration) * 100;
+      setStageProgress(Math.min(Math.max(stageProgressPercent, 0), 100));
     }, 100);
 
     return () => clearInterval(interval);
-  }, [currentStageIndex]);
+  }, [currentStageIndex, startTime]);
 
   const currentStage = loadingStages[currentStageIndex];
 

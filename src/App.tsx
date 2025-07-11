@@ -21,15 +21,19 @@ function App() {
   const [generationError, setGenerationError] = useState<string | null>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [conversationHistory, setConversationHistory] = useState<ConversationHistory[]>([]);
+  const [apiStartTime, setApiStartTime] = useState<number | null>(null);
 
   const generateIdeas = async () => {
     // Clear previous errors
     setGenerationError(null);
     setIsGeneratingMeals(true);
+    
+    // Track API start time for loading animation
+    const startTime = Date.now();
+    setApiStartTime(startTime);
 
     try {
       // Call OpenAI API with user prompt and conversation history
-      const startTime = Date.now();
       const response = await fetch('/api/generate-meals', {
         method: 'POST',
         headers: {
@@ -185,7 +189,7 @@ function App() {
           )}
           
           {isGeneratingMeals && meals.length === 0 ? (
-            <AIChefLoading />
+            <AIChefLoading startTime={apiStartTime || undefined} />
           ) : isGeneratingMeals && meals.length > 0 ? (
             <QuickLoadingSpinner />
           ) : (

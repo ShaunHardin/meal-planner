@@ -27,6 +27,7 @@ function App() {
 
     try {
       // Call OpenAI API with user prompt and conversation history
+      const startTime = Date.now();
       const response = await fetch('/api/generate-meals', {
         method: 'POST',
         headers: {
@@ -37,6 +38,9 @@ function App() {
           history: conversationHistory
         }),
       });
+      
+      const duration = Date.now() - startTime;
+      console.log(`Frontend: Generate meals request took ${duration}ms`);
 
       const data = await response.json();
 

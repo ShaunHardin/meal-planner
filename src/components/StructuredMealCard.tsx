@@ -73,14 +73,6 @@ const StructuredMealCard: React.FC<StructuredMealCardProps> = ({
                   <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
                     {meal.day}
                   </span>
-                  {meal.tags?.map((tag, index) => (
-                    <span 
-                      key={index}
-                      className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800"
-                    >
-                      {tag}
-                    </span>
-                  ))}
                 </div>
                 <h3 className="text-lg font-semibold text-gray-900 mb-1">{meal.name}</h3>
                 <p className="text-gray-600 text-sm">{meal.description}</p>

@@ -49,7 +49,6 @@ export const handlers = [
           'Sauté garlic and vegetables for 5 minutes',
           'Combine pasta with vegetables and serve'
         ],
-        tags: ['vegetarian', 'quick', 'healthy']
       },
       {
         id: 'meal-2',
@@ -71,7 +70,6 @@ export const handlers = [
           'Add vegetables and stir-fry 3-4 minutes',
           'Add soy sauce and serve over rice'
         ],
-        tags: ['protein', 'quick', 'one-pan']
       },
       {
         id: 'meal-3',
@@ -93,7 +91,6 @@ export const handlers = [
           'Combine rice and beans in bowl',
           'Top with avocado and salsa'
         ],
-        tags: ['vegetarian', 'budget-friendly', 'meal-prep']
       },
       {
         id: 'meal-4',
@@ -116,7 +113,6 @@ export const handlers = [
           'Fill tortillas with fish and slaw',
           'Serve with lime wedges'
         ],
-        tags: ['seafood', 'light', 'quick']
       }
     ];
     
@@ -191,7 +187,6 @@ export const handlers = [
           'Add crumbled feta and olive oil dressing',
           'Serve at room temperature'
         ],
-        tags: ['vegetarian', 'healthy', 'mediterranean']
       },
       'Mon': {
         id: 'reroll-meal-mon',
@@ -214,7 +209,6 @@ export const handlers = [
           'Roll up tightly',
           'Cut in half and serve'
         ],
-        tags: ['protein', 'no-cook', 'quick']
       },
       'Wed': {
         id: 'reroll-meal-wed',
@@ -237,7 +231,6 @@ export const handlers = [
           'Simmer 20 minutes until lentils are tender',
           'Serve over basmati rice'
         ],
-        tags: ['vegetarian', 'comfort', 'one-pot']
       }
     };
     
@@ -261,7 +254,6 @@ export const handlers = [
         'Cook until just set',
         'Season and serve immediately'
       ],
-      tags: ['breakfast', 'protein', 'quick']
     };
     
     const meal = rerolledMeals[dayToReroll as keyof typeof rerolledMeals] || defaultMeal;

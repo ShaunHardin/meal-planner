@@ -19,8 +19,7 @@ const mockMeal: Meal = {
     'Season chicken with salt and pepper',
     'Grill chicken for 6-7 minutes per side',
     'Slice chicken and serve over greens'
-  ],
-  tags: ['healthy', 'protein']
+  ]
 };
 
 describe('StructuredMealCard', () => {
@@ -55,27 +54,6 @@ describe('StructuredMealCard', () => {
     expect(screen.getByText('Slice chicken and serve over greens')).toBeInTheDocument();
   });
 
-  it('renders tags when provided', () => {
-    render(<StructuredMealCard meal={mockMeal} />);
-    
-    expect(screen.getByText('healthy')).toBeInTheDocument();
-    expect(screen.getByText('protein')).toBeInTheDocument();
-  });
-
-  it('handles meal without tags', () => {
-    const mealWithoutTags = { ...mockMeal, tags: undefined };
-    render(<StructuredMealCard meal={mealWithoutTags} />);
-    
-    // Should still render other content
-    expect(screen.getByText('Grilled Chicken Salad')).toBeInTheDocument();
-  });
-
-  it('handles empty tags array', () => {
-    const mealWithEmptyTags = { ...mockMeal, tags: [] };
-    render(<StructuredMealCard meal={mealWithEmptyTags} />);
-    
-    expect(screen.getByText('Grilled Chicken Salad')).toBeInTheDocument();
-  });
 
   it('displays day assignment', () => {
     render(<StructuredMealCard meal={mockMeal} />);

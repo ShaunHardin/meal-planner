@@ -14,7 +14,6 @@ export const Meal = z.object({
   cookMinutes: z.number(),
   ingredients: Ingredient.array().min(1),
   steps: z.array(z.string()).min(1),
-  tags: z.array(z.string()).optional(),
 });
 
 export type Ingredient = z.infer<typeof Ingredient>;

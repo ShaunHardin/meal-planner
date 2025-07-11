@@ -15,8 +15,7 @@ describe('Meal Type Validation', () => {
     prepMinutes: 15,
     cookMinutes: 20,
     ingredients: [validIngredient],
-    steps: ['Season chicken', 'Grill for 20 minutes'],
-    tags: ['healthy', 'protein']
+    steps: ['Season chicken', 'Grill for 20 minutes']
   };
 
   describe('Ingredient validation', () => {
@@ -92,25 +91,6 @@ describe('Meal Type Validation', () => {
       expect(result.success).toBe(false);
     });
 
-    it('allows optional tags', () => {
-      const withoutTags = { ...validMeal };
-      delete withoutTags.tags;
-      
-      const result = Meal.safeParse(withoutTags);
-      expect(result.success).toBe(true);
-    });
-
-    it('validates tags as string array', () => {
-      const invalidTags = { ...validMeal, tags: ['healthy', 123] };
-      const result = Meal.safeParse(invalidTags);
-      expect(result.success).toBe(false);
-    });
-
-    it('allows empty tags array', () => {
-      const emptyTags = { ...validMeal, tags: [] };
-      const result = Meal.safeParse(emptyTags);
-      expect(result.success).toBe(true);
-    });
 
     it('validates ingredient array items', () => {
       const invalidIngredients = {
@@ -152,23 +132,6 @@ describe('Meal Type Validation', () => {
       // TypeScript compilation validates type structure
       expect(meal.id).toBe('meal-1');
       expect(meal.day).toBe('Mon');
-      expect(meal.tags).toEqual(['healthy', 'protein']);
-    });
-
-    it('allows undefined tags', () => {
-      const mealWithoutTags: Meal = {
-        id: 'meal-2',
-        day: 'Tue',
-        name: 'Pasta',
-        description: 'Simple pasta',
-        prepMinutes: 5,
-        cookMinutes: 10,
-        ingredients: [{ item: 'pasta', quantity: '1 lb' }],
-        steps: ['Boil pasta']
-        // tags is optional
-      };
-      
-      expect(mealWithoutTags.tags).toBeUndefined();
     });
   });
 });

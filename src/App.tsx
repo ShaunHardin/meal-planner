@@ -3,6 +3,8 @@ import Header from './components/Header';
 import PromptBox from './components/PromptBox';
 import StructuredMealGrid from './components/StructuredMealGrid';
 import Footer from './components/Footer';
+import AIChefLoading from './components/AIChefLoading';
+import QuickLoadingSpinner from './components/QuickLoadingSpinner';
 import { Meal } from './types/meal';
 
 interface ConversationHistory {
@@ -19,11 +21,16 @@ function App() {
   const [generationError, setGenerationError] = useState<string | null>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [conversationHistory, setConversationHistory] = useState<ConversationHistory[]>([]);
+  const [apiStartTime, setApiStartTime] = useState<number | null>(null);
 
   const generateIdeas = async () => {
     // Clear previous errors
     setGenerationError(null);
     setIsGeneratingMeals(true);
+    
+    // Track API start time for loading animation
+    const startTime = Date.now();
+    setApiStartTime(startTime);
 
     try {
       // Call OpenAI API with user prompt and conversation history
@@ -37,6 +44,9 @@ function App() {
           history: conversationHistory
         }),
       });
+      
+      const duration = Date.now() - startTime;
+      console.log(`Frontend: Generate meals request took ${duration}ms`);
 
       const data = await response.json();
 
@@ -178,14 +188,20 @@ function App() {
             </div>
           )}
           
-          <StructuredMealGrid 
-            meals={meals}
-            onEditMeal={handleEditMeal}
-            onRerollMeal={handleRerollMeal}
-            onReorderMeals={handleReorderMeals}
-            isLoading={isGeneratingMeals}
-            rerollLoadingStates={rerollLoadingStates}
-          />
+          {isGeneratingMeals && meals.length === 0 ? (
+            <AIChefLoading startTime={apiStartTime || undefined} />
+          ) : isGeneratingMeals && meals.length > 0 ? (
+            <QuickLoadingSpinner />
+          ) : (
+            <StructuredMealGrid 
+              meals={meals}
+              onEditMeal={handleEditMeal}
+              onRerollMeal={handleRerollMeal}
+              onReorderMeals={handleReorderMeals}
+              isLoading={isGeneratingMeals}
+              rerollLoadingStates={rerollLoadingStates}
+            />
+          )}
         </div>
       </main>
       

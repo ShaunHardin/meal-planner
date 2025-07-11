@@ -22,8 +22,7 @@ const mockMealResponse = {
       prepMinutes: 10,
       cookMinutes: 20,
       ingredients: [{ item: 'chicken breast', quantity: '2 pieces' }],
-      steps: ['Season chicken', 'Grill for 20 minutes'],
-      tags: ['healthy', 'protein']
+      steps: ['Season chicken', 'Grill for 20 minutes']
     }
   ]
 };

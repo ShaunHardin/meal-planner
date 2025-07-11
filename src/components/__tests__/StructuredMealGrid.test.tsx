@@ -12,8 +12,7 @@ const mockMeals: Meal[] = [
     prepMinutes: 10,
     cookMinutes: 15,
     ingredients: [{ item: 'chicken', quantity: '1 lb' }],
-    steps: ['Cook chicken', 'Make salad'],
-    tags: ['healthy']
+    steps: ['Cook chicken', 'Make salad']
   },
   {
     id: 'meal-2',
@@ -23,8 +22,7 @@ const mockMeals: Meal[] = [
     prepMinutes: 5,
     cookMinutes: 10,
     ingredients: [{ item: 'pasta', quantity: '1 lb' }],
-    steps: ['Boil pasta', 'Add sauce'],
-    tags: ['quick']
+    steps: ['Boil pasta', 'Add sauce']
   }
 ];
 

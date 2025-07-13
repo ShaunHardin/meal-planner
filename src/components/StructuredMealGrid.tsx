@@ -9,6 +9,7 @@ interface StructuredMealGridProps {
   onReorderMeals?: (reorderedMeals: Meal[]) => void;
   isLoading?: boolean;
   rerollLoadingStates?: Record<string, boolean>;
+  onShowGroceryList?: () => void;
 }
 
 const StructuredMealGrid: React.FC<StructuredMealGridProps> = ({ 
@@ -17,7 +18,8 @@ const StructuredMealGrid: React.FC<StructuredMealGridProps> = ({
   onRerollMeal,
   onReorderMeals,
   isLoading = false,
-  rerollLoadingStates = {}
+  rerollLoadingStates = {},
+  onShowGroceryList
 }) => {
   const [draggedMealId, setDraggedMealId] = useState<string | null>(null);
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
@@ -119,6 +121,21 @@ const StructuredMealGrid: React.FC<StructuredMealGridProps> = ({
 
   return (
     <div className="animate-fade-in" data-testid="structured-meal-grid">
+      <div className="flex justify-between items-center mb-6">
+        <div className="text-sm text-gray-600">
+          {meals.length} meal{meals.length !== 1 ? 's' : ''} planned
+        </div>
+        {onShowGroceryList && (
+          <button
+            onClick={onShowGroceryList}
+            className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors flex items-center gap-2"
+          >
+            <span>🛒</span>
+            Grocery List
+          </button>
+        )}
+      </div>
+      
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {sortedMeals.map((meal, index) => (
           <div

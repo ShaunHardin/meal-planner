@@ -5,6 +5,7 @@ import StructuredMealGrid from './components/StructuredMealGrid';
 import Footer from './components/Footer';
 import AIChefLoading from './components/AIChefLoading';
 import QuickLoadingSpinner from './components/QuickLoadingSpinner';
+import { GroceryList } from './components/GroceryList';
 import { Meal } from './types/meal';
 
 interface ConversationHistory {
@@ -22,6 +23,7 @@ function App() {
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [conversationHistory, setConversationHistory] = useState<ConversationHistory[]>([]);
   const [apiStartTime, setApiStartTime] = useState<number | null>(null);
+  const [showGroceryList, setShowGroceryList] = useState(false);
 
   const generateIdeas = async () => {
     // Clear previous errors
@@ -200,6 +202,14 @@ function App() {
               onReorderMeals={handleReorderMeals}
               isLoading={isGeneratingMeals}
               rerollLoadingStates={rerollLoadingStates}
+              onShowGroceryList={() => setShowGroceryList(true)}
+            />
+          )}
+          
+          {showGroceryList && (
+            <GroceryList 
+              meals={meals}
+              onClose={() => setShowGroceryList(false)}
             />
           )}
         </div>

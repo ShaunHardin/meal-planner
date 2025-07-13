@@ -1,4 +1,5 @@
 import express from 'express';
+import path from 'path';
 import { config } from 'dotenv';
 import OpenAI from 'openai';
 import { z } from 'zod';
@@ -9,6 +10,9 @@ const app = express();
 const port = 3001;
 
 app.use(express.json());
+
+// Serve static files from the dist directory
+app.use(express.static(path.resolve(process.cwd(), 'dist')));
 
 // Shared JSON schema for consistency and performance
 const MEAL_JSON_SCHEMA = {
@@ -330,6 +334,11 @@ app.post('/reroll-meal', async (req, res) => {
       error: error.message || 'Failed to reroll meal suggestion' 
     });
   }
+});
+
+// Catch-all route to serve React app for client-side routing
+app.get('*', (req, res) => {
+  res.sendFile(path.resolve(process.cwd(), 'dist', 'index.html'));
 });
 
 app.listen(port, () => {

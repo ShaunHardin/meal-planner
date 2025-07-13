@@ -1,0 +1,25 @@
+# Dependencies
+node_modules
+
+# Build output
+dist
+
+# Package manager files
+*.pnpm*
+pnpm-lock.yaml
+
+# Environment variables
+.env
+.env.local
+.env.production
+.env.development
+
+# Version control
+.git
+.gitignore
+
+# Development files
+.vscode
+.idea
+*.log
+coverage

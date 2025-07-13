@@ -1,24 +1,24 @@
-# Dependencies
+# Dependencies (will be installed in container)
 node_modules
 
-# Build output
+# Build output (will be generated during Docker build)
 dist
 
-# Package manager files
-*.pnpm*
-pnpm-lock.yaml
+# Package manager cache files (but keep lock file for reproducible builds)
+.pnpm-store
+*.pnpm-debug.log
 
-# Environment variables
+# Environment variables (secrets should not be in image)
 .env
 .env.local
 .env.production
 .env.development
 
-# Version control
+# Version control files
 .git
 .gitignore
 
-# Development files
+# Development and IDE files
 .vscode
 .idea
 *.log

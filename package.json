@@ -21,6 +21,8 @@
     "test:poc": "node -e \"fetch('http://localhost:3001/meal-poc').then(r=>r.json()).then(console.log).catch(console.error)\""
   },
   "dependencies": {
+    "dotenv": "^16.5.0",
+    "express": "^5.1.0",
     "lucide-react": "^0.344.0",
     "openai": "^5.5.1",
     "react": "^18.3.1",
@@ -44,11 +46,9 @@
     "@vitest/ui": "^3.2.4",
     "autoprefixer": "^10.4.18",
     "concurrently": "^9.1.2",
-    "dotenv": "^16.5.0",
     "eslint": "^9.9.1",
     "eslint-plugin-react-hooks": "^5.1.0-rc.0",
     "eslint-plugin-react-refresh": "^0.4.11",
-    "express": "^5.1.0",
     "globals": "^15.9.0",
     "jsdom": "^26.1.0",
     "msw": "^2.10.2",

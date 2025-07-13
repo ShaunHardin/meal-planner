@@ -337,7 +337,7 @@ app.post('/reroll-meal', async (req, res) => {
 });
 
 // Catch-all route to serve React app for client-side routing
-app.get('*', (req, res) => {
+app.get('/*', (req, res) => {
   res.sendFile(path.resolve(process.cwd(), 'dist', 'index.html'));
 });
 

@@ -18,7 +18,8 @@
     "test:coverage": "vitest run --coverage",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
-    "test:poc": "node -e \"fetch('http://localhost:3001/meal-poc').then(r=>r.json()).then(console.log).catch(console.error)\""
+    "test:poc": "node -e \"fetch('http://localhost:3001/meal-poc').then(r=>r.json()).then(console.log).catch(console.error)\"",
+    "deploy:railway": "pnpm lint && pnpm type-check && pnpm test && pnpm build && railway up --service meal-planning --environment test --detach"
   },
   "dependencies": {
     "dotenv": "^16.5.0",

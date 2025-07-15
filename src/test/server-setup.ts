@@ -9,7 +9,7 @@ export function createServer() {
   // Mock API key for testing
   const apiKey = process.env.OPENAI_API_KEY || 'test-api-key';
 
-  app.get('/meal-poc', async (req, res) => {
+  app.get('/api/meal-poc', async (req, res) => {
     if (req.method !== 'GET' && req.method !== 'POST') {
       return res.status(405).json({ error: 'Method not allowed' });
     }
@@ -36,7 +36,7 @@ export function createServer() {
     }
   });
 
-  app.post('/generate-meals', async (req, res) => {
+  app.post('/api/generate-meals', async (req, res) => {
     const { prompt } = req.body;
     
     // Validate prompt

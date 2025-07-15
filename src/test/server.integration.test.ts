@@ -24,10 +24,10 @@ describe('Server Integration Tests', () => {
     app = createServer();
   });
 
-  describe('POST /generate-meals', () => {
+  describe('POST /api/generate-meals', () => {
     it('validates prompt is required', async () => {
       const response = await request(app)
-        .post('/generate-meals')
+        .post('/api/generate-meals')
         .send({});
 
       expect(response.status).toBe(400);
@@ -36,7 +36,7 @@ describe('Server Integration Tests', () => {
 
     it('validates prompt is a string', async () => {
       const response = await request(app)
-        .post('/generate-meals')
+        .post('/api/generate-meals')
         .send({ prompt: 123 });
 
       expect(response.status).toBe(400);
@@ -45,7 +45,7 @@ describe('Server Integration Tests', () => {
 
     it('validates prompt minimum length', async () => {
       const response = await request(app)
-        .post('/generate-meals')
+        .post('/api/generate-meals')
         .send({ prompt: 'short' });
 
       expect(response.status).toBe(400);
@@ -55,7 +55,7 @@ describe('Server Integration Tests', () => {
     it('validates prompt maximum length', async () => {
       const longPrompt = 'a'.repeat(501);
       const response = await request(app)
-        .post('/generate-meals')
+        .post('/api/generate-meals')
         .send({ prompt: longPrompt });
 
       expect(response.status).toBe(400);
@@ -64,7 +64,7 @@ describe('Server Integration Tests', () => {
 
     it('trims whitespace from prompt before validation', async () => {
       const response = await request(app)
-        .post('/generate-meals')
+        .post('/api/generate-meals')
         .send({ prompt: '   short   ' });
 
       expect(response.status).toBe(400);
@@ -79,7 +79,7 @@ describe('Server Integration Tests', () => {
 
       const validPrompt = 'I need 4 quick vegetarian meals for dinner';
       const response = await request(app)
-        .post('/generate-meals')
+        .post('/api/generate-meals')
         .send({ prompt: validPrompt });
 
       expect(response.status).toBe(200);
@@ -98,7 +98,7 @@ describe('Server Integration Tests', () => {
 
       const validPrompt = 'I need 4 quick vegetarian meals for dinner';
       const response = await request(app)
-        .post('/generate-meals')
+        .post('/api/generate-meals')
         .send({ prompt: validPrompt });
 
       expect(response.status).toBe(500);
@@ -110,7 +110,7 @@ describe('Server Integration Tests', () => {
 
       const validPrompt = 'I need 4 quick vegetarian meals for dinner';
       const response = await request(app)
-        .post('/generate-meals')
+        .post('/api/generate-meals')
         .send({ prompt: validPrompt });
 
       expect(response.status).toBe(200);

@@ -93,7 +93,7 @@ const MealsResponse = z.object({
   meals: Meal.array()
 });
 
-app.get('/meal-poc', async (req, res) => {
+app.get('/api/meal-poc', async (req, res) => {
   if (req.method !== 'GET' && req.method !== 'POST') {
       return res.status(405).json({ error: 'Method not allowed' });
     }
@@ -121,7 +121,7 @@ app.get('/meal-poc', async (req, res) => {
     }
 });
 
-app.post('/generate-meals', async (req, res) => {
+app.post('/api/generate-meals', async (req, res) => {
   const { prompt, history } = req.body;
   
   // Validate prompt
@@ -264,7 +264,7 @@ app.post('/generate-meals', async (req, res) => {
   }
 });
 
-app.post('/reroll-meal', async (req, res) => {
+app.post('/api/reroll-meal', async (req, res) => {
   const { originalPrompt, dayToReroll, existingMealNames } = req.body;
   
   // Validate inputs
@@ -337,7 +337,7 @@ app.post('/reroll-meal', async (req, res) => {
 });
 
 // Catch-all route to serve React app for client-side routing
-app.get('/*', (req, res) => {
+app.get('*', (req, res) => {
   res.sendFile(path.resolve(process.cwd(), 'dist', 'index.html'));
 });
 

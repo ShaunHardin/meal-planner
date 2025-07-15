@@ -123,14 +123,14 @@ describe('Server Integration Tests', () => {
     });
   });
 
-  describe('GET /meal-poc', () => {
+  describe('GET /api/meal-poc', () => {
     it('returns test response successfully', async () => {
       const mockResponse = {
         output_text: 'Test meal suggestions from POC endpoint',
       };
       mockOpenAI.responses.create.mockResolvedValue(mockResponse);
 
-      const response = await request(app).get('/meal-poc');
+      const response = await request(app).get('/api/meal-poc');
 
       expect(response.status).toBe(200);
       expect(response.body.message).toBe('Test meal suggestions from POC endpoint');
@@ -140,7 +140,7 @@ describe('Server Integration Tests', () => {
       const mockError = new Error('API error');
       mockOpenAI.responses.create.mockRejectedValue(mockError);
 
-      const response = await request(app).get('/meal-poc');
+      const response = await request(app).get('/api/meal-poc');
 
       expect(response.status).toBe(500);
       expect(response.body.error).toBe('Failed to generate meal idea');

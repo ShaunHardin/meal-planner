@@ -9,7 +9,7 @@ export function createServer() {
   // Mock API key for testing
   const apiKey = process.env.OPENAI_API_KEY || 'test-api-key';
 
-  app.get('/meal-poc', async (req, res) => {
+  app.get('/api/meal-poc', async (req, res) => {
     if (req.method !== 'GET' && req.method !== 'POST') {
       return res.status(405).json({ error: 'Method not allowed' });
     }
@@ -31,12 +31,14 @@ export function createServer() {
       
       return res.status(200).json({ message });
     } catch (error) {
-      console.error('OpenAI API error:', error);
+      if (process.env.NODE_ENV !== 'test') {
+        console.error('OpenAI API error:', error);
+      }
       return res.status(500).json({ error: 'Failed to generate meal idea' });
     }
   });
 
-  app.post('/generate-meals', async (req, res) => {
+  app.post('/api/generate-meals', async (req, res) => {
     const { prompt } = req.body;
     
     // Validate prompt
@@ -69,7 +71,9 @@ export function createServer() {
       
       return res.status(200).json({ message });
     } catch (error) {
-      console.error('OpenAI API error:', error);
+      if (process.env.NODE_ENV !== 'test') {
+        console.error('OpenAI API error:', error);
+      }
       return res.status(500).json({ 
         error: (error as Error).message || 'Failed to generate meal suggestions' 
       });

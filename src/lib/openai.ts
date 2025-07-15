@@ -65,19 +65,27 @@ export class MealPlannerAI {
       const validatedResponse = mealsResponseSchema.parse(parsedData);
       const meals = validatedResponse.meals;
 
-      // Log performance metrics
-      const duration = Date.now() - startTime;
-      console.log(`OpenAI request completed in ${duration}ms`);
+      // Log performance metrics only in non-test environments
+      if (process.env.NODE_ENV !== 'test') {
+        const duration = Date.now() - startTime;
+        console.log(`OpenAI request completed in ${duration}ms`);
+      }
 
       return meals;
     } catch (error) {
-      const duration = Date.now() - startTime;
-      console.error(`OpenAI request failed after ${duration}ms:`, error);
-      
       // If this is our first attempt and we got a parsing error, try once more
       if (!retryAttempt && (error instanceof z.ZodError || error instanceof SyntaxError)) {
-        console.warn("First attempt failed, retrying with schema fix prompt:", error.message);
+        // Only log retry attempt in non-test environments
+        if (process.env.NODE_ENV !== 'test') {
+          console.warn("First attempt failed, retrying with schema fix prompt:", error.message);
+        }
         return this.generateMeals(userPrompt, true);
+      }
+      
+      // Only log errors in non-test environments
+      if (process.env.NODE_ENV !== 'test') {
+        const duration = Date.now() - startTime;
+        console.error(`OpenAI request failed after ${duration}ms:`, error);
       }
       
       // If retry also failed or it's a different error, throw it

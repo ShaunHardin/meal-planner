@@ -18,11 +18,13 @@
     "test:coverage": "vitest run --coverage",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
-    "test:poc": "node -e \"fetch('http://localhost:3001/meal-poc').then(r=>r.json()).then(console.log).catch(console.error)\""
+    "test:poc": "node -e \"fetch('http://localhost:3001/api/meal-poc').then(r=>r.json()).then(console.log).catch(console.error)\"",
+    "start": "node server.js",
+    "deploy:railway": "pnpm lint && pnpm type-check && pnpm test && pnpm build && railway up --service meal-planning --environment test --detach"
   },
   "dependencies": {
     "dotenv": "^16.5.0",
-    "express": "^5.1.0",
+    "express": "^4.21.0",
     "lucide-react": "^0.344.0",
     "openai": "^5.5.1",
     "react": "^18.3.1",
@@ -36,7 +38,7 @@
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/react": "^16.3.0",
     "@testing-library/user-event": "^14.6.1",
-    "@types/express": "^5.0.3",
+    "@types/express": "^4.17.21",
     "@types/node": "^24.0.3",
     "@types/react": "^18.3.5",
     "@types/react-dom": "^18.3.0",

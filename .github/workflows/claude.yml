@@ -20,7 +20,7 @@ jobs:
     
     # Allow multiple Claude instances to work on different issues/PRs simultaneously
     concurrency:
-      group: claude-${{ github.event.issue.number || github.event.pull_request.number }}
+      group: claude-${{ github.event.issue.number || github.event.pull_request.number || github.event.comment.issue_url | split('/') | last }}
       cancel-in-progress: false
     
     runs-on: ubuntu-latest
@@ -36,6 +36,13 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0 # Full history needed for complex git operations
+
+      - name: Validate Secrets
+        run: |
+          if [ -z "${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}" ]; then
+            echo "CLAUDE_CODE_OAUTH_TOKEN is required"
+            exit 1
+          fi
 
       - name: Run Claude Code
         id: claude
@@ -59,7 +66,8 @@ jobs:
           # assignee_trigger: "claude-bot"
           
           # Optional: Allow Claude to run specific commands
-          allowed_tools: "Bash(pnpm install),Bash(pnpm lint),Bash(pnpm type-check),Bash(pnpm test),Bash(pnpm build),Bash(git status),Bash(git add),Bash(git commit),Bash(git push),Bash(git checkout),Bash(git branch),Bash(git diff),Bash(git log),Bash(git pull),Bash(gh pr create),Bash(gh pr list),Bash(gh pr view),Bash(gh pr merge)"
+          # Note: gh pr merge removed to prevent merging to main (use GitHub UI instead)
+          allowed_tools: "Bash(pnpm install),Bash(pnpm lint),Bash(pnpm type-check),Bash(pnpm test),Bash(pnpm build),Bash(git status),Bash(git add),Bash(git commit),Bash(git push),Bash(git checkout),Bash(git branch),Bash(git diff),Bash(git log),Bash(git pull),Bash(gh pr create),Bash(gh pr list),Bash(gh pr view)"
           
           # Optional: Add custom instructions for Claude to customize its behavior for your project
           custom_instructions: |
@@ -69,6 +77,8 @@ jobs:
             When creating PRs: create descriptive branch names, write clear commit messages, and include proper PR descriptions
             For parallel work: use unique branch names to avoid conflicts
             Never commit changes unless all quality checks pass
+            BRANCH PROTECTION: Never push directly to main branch. Always create feature branches and PRs.
+            MERGE RESTRICTION: Only repository owner can merge PRs to main via GitHub UI - never use gh pr merge.
           
           # Optional: Custom environment variables for Claude
           # claude_env: |

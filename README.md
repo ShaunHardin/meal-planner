@@ -86,26 +86,32 @@ cp .env.example .env
 # Add your OpenAI API key to .env
 
 # Start the magic ✨
-pnpm start
+pnpm dev
 ```
 
 That's it! Your meal planner will be running at `http://localhost:5173` with the API server on port 3001.
+
+**Note**: Use `pnpm dev` for development (runs both frontend and backend). Use `pnpm start` to run only the backend server.
 
 ### Development Commands
 
 ```bash
 # Start everything (recommended)
-pnpm start              # Frontend + Backend concurrently
+pnpm dev               # Frontend + Backend concurrently
 
 # Individual services
-pnpm dev:frontend       # Just the React app (port 5173)
+pnpm dev:frontend      # Just the React app (port 5173)
 pnpm dev:api           # Just the Express server (port 3001)
+
+# Production server
+pnpm start             # Backend only (for production)
 
 # Quality assurance
 pnpm lint              # Check code quality
 pnpm type-check        # Validate TypeScript
 pnpm test              # Run all tests
 pnpm test:coverage     # Test coverage report
+pnpm test:ui           # Interactive test UI
 pnpm test:e2e          # End-to-end tests
 
 # Production
@@ -177,7 +183,7 @@ meal-planner/
 │   │   ├── components/          # UI components
 │   │   │   ├── Header.tsx       # App header with branding
 │   │   │   ├── PromptBox.tsx    # AI prompt input
-│   │   │   ├── StructuredMealGrid.tsx  # Meal grid with drag-and-drop
+│   │   │   ├── StructuredMealGrid.tsx  # Meal grid display
 │   │   │   ├── StructuredMealCard.tsx  # Individual meal cards
 │   │   │   └── AIChefLoading.tsx       # Delightful loading states
 │   │   ├── types/               # TypeScript types & Zod schemas
@@ -313,7 +319,7 @@ We welcome contributions! This project is set up for collaborative development w
 
 - **💬 Ask Claude**: Comment `@claude` on any issue or PR for assistance
 - **🔍 Check CLAUDE.md**: Contains detailed development guidelines
-- **🧪 Run tests**: `pnpm test:watch` for real-time feedback
+- **🧪 Run tests**: `pnpm test:ui` for interactive testing or `pnpm test` for continuous testing
 - **📊 Check coverage**: `pnpm test:coverage` to see test gaps
 
 ## 📄 License

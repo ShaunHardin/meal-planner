@@ -17,22 +17,31 @@ jobs:
       (github.event_name == 'pull_request_review_comment' && contains(github.event.comment.body, '@claude')) ||
       (github.event_name == 'pull_request_review' && contains(github.event.review.body, '@claude')) ||
       (github.event_name == 'issues' && (contains(github.event.issue.body, '@claude') || contains(github.event.issue.title, '@claude')))
+    
+    # Allow multiple Claude instances to work on different issues/PRs simultaneously
+    concurrency:
+      group: claude-${{ github.event.issue.number || github.event.pull_request.number }}
+      cancel-in-progress: false
+    
     runs-on: ubuntu-latest
     permissions:
-      contents: read
-      pull-requests: read
-      issues: read
+      contents: write # Required for creating branches and pushing code
+      pull-requests: write # Required for creating and updating PRs
+      issues: write # Required for creating and updating issues
       id-token: write
       actions: read # Required for Claude to read CI results on PRs
+      metadata: read # Required for repository metadata
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          fetch-depth: 1
+          fetch-depth: 0 # Full history needed for complex git operations
 
       - name: Run Claude Code
         id: claude
         uses: anthropics/claude-code-action@beta
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
 
@@ -50,13 +59,16 @@ jobs:
           # assignee_trigger: "claude-bot"
           
           # Optional: Allow Claude to run specific commands
-          # allowed_tools: "Bash(npm install),Bash(npm run build),Bash(npm run test:*),Bash(npm run lint:*)"
+          allowed_tools: "Bash(pnpm install),Bash(pnpm lint),Bash(pnpm type-check),Bash(pnpm test),Bash(pnpm build),Bash(git status),Bash(git add),Bash(git commit),Bash(git push),Bash(git checkout),Bash(git branch),Bash(git diff),Bash(git log),Bash(git pull),Bash(gh pr create),Bash(gh pr list),Bash(gh pr view),Bash(gh pr merge)"
           
           # Optional: Add custom instructions for Claude to customize its behavior for your project
-          # custom_instructions: |
-          #   Follow our coding standards
-          #   Ensure all new code has tests
-          #   Use TypeScript for new files
+          custom_instructions: |
+            Follow the guidelines in CLAUDE.md
+            Always run quality checks: pnpm lint && pnpm type-check && pnpm test && pnpm build
+            Focus on TypeScript best practices and React component patterns
+            When creating PRs: create descriptive branch names, write clear commit messages, and include proper PR descriptions
+            For parallel work: use unique branch names to avoid conflicts
+            Never commit changes unless all quality checks pass
           
           # Optional: Custom environment variables for Claude
           # claude_env: |

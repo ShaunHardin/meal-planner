@@ -20,7 +20,7 @@ jobs:
     
     # Allow multiple Claude instances to work on different issues/PRs simultaneously
     concurrency:
-      group: claude-${{ github.event.issue.number || github.event.pull_request.number || github.event.comment.issue_url | split('/') | last }}
+      group: claude-${{ github.event.issue.number || github.event.pull_request.number || github.run_id }}
       cancel-in-progress: false
     
     runs-on: ubuntu-latest
@@ -30,7 +30,6 @@ jobs:
       issues: write # Required for creating and updating issues
       id-token: write
       actions: read # Required for Claude to read CI results on PRs
-      metadata: read # Required for repository metadata
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4

@@ -36,6 +36,16 @@ jobs:
         with:
           fetch-depth: 0 # Full history needed for complex git operations
 
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 8
+
       - name: Validate Secrets
         run: |
           if [ -z "${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}" ]; then
@@ -66,12 +76,13 @@ jobs:
           
           # Optional: Allow Claude to run specific commands
           # Note: gh pr merge removed to prevent merging to main (use GitHub UI instead)
-          allowed_tools: "Bash(pnpm install),Bash(pnpm lint),Bash(pnpm type-check),Bash(pnpm test),Bash(pnpm build),Bash(git status),Bash(git add),Bash(git commit),Bash(git push),Bash(git checkout),Bash(git branch),Bash(git diff),Bash(git log),Bash(git pull),Bash(gh pr create),Bash(gh pr list),Bash(gh pr view)"
+          allowed_tools: "Bash(pnpm install),Bash(npm install),Bash(pnpm lint),Bash(npm run lint),Bash(pnpm type-check),Bash(npm run type-check),Bash(pnpm test),Bash(npm test),Bash(pnpm build),Bash(npm run build),Bash(git status),Bash(git add),Bash(git commit),Bash(git push),Bash(git checkout),Bash(git branch),Bash(git diff),Bash(git log),Bash(git pull),Bash(gh pr create),Bash(gh pr list),Bash(gh pr view)"
           
           # Optional: Add custom instructions for Claude to customize its behavior for your project
           custom_instructions: |
             Follow the guidelines in CLAUDE.md
             Always run quality checks: pnpm lint && pnpm type-check && pnpm test && pnpm build
+            If pnpm is not available, use npm equivalents: npm run lint && npm run type-check && npm test && npm run build
             Focus on TypeScript best practices and React component patterns
             When creating PRs: create descriptive branch names, write clear commit messages, and include proper PR descriptions
             For parallel work: use unique branch names to avoid conflicts

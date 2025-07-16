@@ -31,6 +31,16 @@ jobs:
         with:
           fetch-depth: 1
 
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 8
+
       - name: Validate Secrets
         run: |
           if [ -z "${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}" ]; then
@@ -76,7 +86,7 @@ jobs:
           #   'Please provide a thorough code review focusing on our coding standards and best practices.' }}
           
           # Optional: Add specific tools for running tests or linting
-          allowed_tools: "Bash(pnpm lint),Bash(pnpm type-check),Bash(pnpm test),Bash(pnpm build)"
+          allowed_tools: "Bash(pnpm install),Bash(npm install),Bash(pnpm lint),Bash(npm run lint),Bash(pnpm type-check),Bash(npm run type-check),Bash(pnpm test),Bash(npm test),Bash(pnpm build),Bash(npm run build)"
           
           # Optional: Skip review for certain conditions
           # if: |

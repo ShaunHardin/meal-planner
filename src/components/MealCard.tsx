@@ -1,6 +1,6 @@
 import React from 'react';
 import { Check, X, CheckCircle } from 'lucide-react';
-import SlotMachineAnim from './SlotMachineAnim';
+import SlotMachineLoader from './SlotMachineLoader';
 import { MealIdea } from '../App';
 
 interface MealCardProps {
@@ -25,7 +25,7 @@ const MealCard: React.FC<MealCardProps> = ({ meal, onAccept, onReject }) => {
     <div className={`rounded-xl p-6 shadow-sm transition-all duration-300 ${getCardStyles()}`}>
       {meal.state === 'loading' ? (
         <div className="flex items-center justify-center h-32">
-          <SlotMachineAnim />
+          <SlotMachineLoader size="small" title="Generating meal idea..." />
         </div>
       ) : (
         <div className="space-y-4">

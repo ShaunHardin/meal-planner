@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Clock, Users, ChefHat, Edit2, Check } from 'lucide-react';
 import { Meal } from '../types/meal';
-import SlotMachineAnim from './SlotMachineAnim';
+import SlotMachineLoader from './SlotMachineLoader';
 
 interface StructuredMealCardProps {
   meal: Meal;
@@ -63,10 +63,11 @@ const StructuredMealCard: React.FC<StructuredMealCardProps> = ({
         <div className="flex items-start justify-between">
           <div className="flex-1">
             {isRerolling ? (
-              <div className="flex flex-col items-center justify-center py-8">
-                <SlotMachineAnim isSpinning={isRerolling} />
-                <p className="text-gray-500 text-sm mt-4">Generating new meal suggestion...</p>
-              </div>
+              <SlotMachineLoader 
+                size="small" 
+                isSpinning={isRerolling} 
+                title="Generating new meal suggestion..." 
+              />
             ) : (
               <>
                 <div className="flex items-center gap-2 mb-2">

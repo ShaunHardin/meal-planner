@@ -3,8 +3,7 @@ import Header from './components/Header';
 import PromptBox from './components/PromptBox';
 import StructuredMealGrid from './components/StructuredMealGrid';
 import Footer from './components/Footer';
-import AIChefLoading from './components/AIChefLoading';
-import QuickLoadingSpinner from './components/QuickLoadingSpinner';
+import SlotMachineLoader from './components/SlotMachineLoader';
 import { Meal } from './types/meal';
 
 interface ConversationHistory {
@@ -21,16 +20,14 @@ function App() {
   const [generationError, setGenerationError] = useState<string | null>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [conversationHistory, setConversationHistory] = useState<ConversationHistory[]>([]);
-  const [apiStartTime, setApiStartTime] = useState<number | null>(null);
 
   const generateIdeas = async () => {
     // Clear previous errors
     setGenerationError(null);
     setIsGeneratingMeals(true);
     
-    // Track API start time for loading animation
+    // Track API start time for debugging
     const startTime = Date.now();
-    setApiStartTime(startTime);
 
     try {
       // Call OpenAI API with user prompt and conversation history
@@ -189,9 +186,17 @@ function App() {
           )}
           
           {isGeneratingMeals && meals.length === 0 ? (
-            <AIChefLoading startTime={apiStartTime || undefined} />
+            <SlotMachineLoader 
+              size="large" 
+              title="Generating Your Meal Plan" 
+              subtitle="Rolling the perfect meal combinations..." 
+            />
           ) : isGeneratingMeals && meals.length > 0 ? (
-            <QuickLoadingSpinner />
+            <SlotMachineLoader 
+              size="large" 
+              title="Updating Your Meal Plan" 
+              subtitle="Finding the perfect replacement..." 
+            />
           ) : (
             <StructuredMealGrid 
               meals={meals}

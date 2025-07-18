@@ -20,6 +20,6 @@ jobs:
           echo "$HOME/.railway/bin" >> $GITHUB_PATH
       
       - name: Deploy to Railway
-        run: railway up --detach
+        run: railway up --service meal-planning --environment production
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}

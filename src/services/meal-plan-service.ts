@@ -2,6 +2,7 @@ import { supabase, getCurrentUser, isSupabaseConfigured } from '../lib/db';
 import { Plan, DatabaseError } from '../types/plan';
 import { Meal } from '../types/meal';
 import { formatWeekStart, getCurrentMondayDate } from '../utils/date-helpers';
+import { z } from 'zod';
 
 /**
  * Service for managing meal plan persistence to Supabase
@@ -15,6 +16,32 @@ export class MealPlanService {
    * @throws DatabaseError if save fails
    */
   static async savePlan(weekStart: Date, meals: Meal[]): Promise<Plan> {
+    // Validate inputs
+    if (!weekStart || isNaN(weekStart.getTime())) {
+      throw new DatabaseError({
+        message: 'Invalid week start date',
+        code: 'INVALID_INPUT'
+      });
+    }
+    
+    if (!meals || meals.length === 0) {
+      throw new DatabaseError({
+        message: 'Cannot save empty meal plan',
+        code: 'INVALID_INPUT'
+      });
+    }
+    
+    // Validate meal structure with Zod
+    try {
+      z.array(Meal).parse(meals);
+    } catch (error) {
+      throw new DatabaseError({
+        message: 'Invalid meal data structure',
+        code: 'INVALID_INPUT',
+        details: error instanceof Error ? error.message : 'Meal validation failed'
+      });
+    }
+
     // Check if Supabase is configured
     if (!isSupabaseConfigured()) {
       throw new DatabaseError({
@@ -35,75 +62,38 @@ export class MealPlanService {
     const weekStartStr = formatWeekStart(weekStart);
 
     try {
-      // Check if a plan already exists for this week
-      const { data: existingPlan } = await supabase
+      const now = new Date().toISOString();
+      
+      // Use upsert pattern to reduce database roundtrips
+      const { data, error } = await supabase
         .from('plans')
-        .select('*')
-        .eq('user_id', user.id)
-        .eq('week_start', weekStartStr)
+        .upsert({
+          user_id: user.id,
+          week_start: weekStartStr,
+          meals: meals,
+          updated_at: now,
+        }, {
+          onConflict: 'user_id,week_start'
+        })
+        .select()
         .single();
 
-      const now = new Date().toISOString();
-
-      if (existingPlan) {
-        // Update existing plan
-        const { data, error } = await supabase
-          .from('plans')
-          .update({
-            meals: meals,
-            updated_at: now,
-          })
-          .eq('id', existingPlan.id)
-          .select()
-          .single();
-
-        if (error) {
-          throw new DatabaseError({
-            message: `Failed to update meal plan: ${error.message}`,
-            code: error.code,
-            details: error.details
-          });
-        }
-
-        return {
-          id: data.id,
-          user_id: data.user_id,
-          week_start: data.week_start,
-          meals: data.meals,
-          created_at: data.created_at,
-          updated_at: data.updated_at,
-        };
-      } else {
-        // Create new plan
-        const { data, error } = await supabase
-          .from('plans')
-          .insert({
-            user_id: user.id,
-            week_start: weekStartStr,
-            meals: meals,
-            created_at: now,
-            updated_at: now,
-          })
-          .select()
-          .single();
-
-        if (error) {
-          throw new DatabaseError({
-            message: `Failed to create meal plan: ${error.message}`,
-            code: error.code,
-            details: error.details
-          });
-        }
-
-        return {
-          id: data.id,
-          user_id: data.user_id,
-          week_start: data.week_start,
-          meals: data.meals,
-          created_at: data.created_at,
-          updated_at: data.updated_at,
-        };
+      if (error) {
+        throw new DatabaseError({
+          message: `Failed to save meal plan: ${error.message}`,
+          code: error.code,
+          details: error.details
+        });
       }
+
+      return {
+        id: data.id,
+        user_id: data.user_id,
+        week_start: data.week_start,
+        meals: data.meals,
+        created_at: data.created_at,
+        updated_at: data.updated_at,
+      };
     } catch (error) {
       if (error instanceof DatabaseError) {
         throw error;

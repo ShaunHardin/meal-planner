@@ -9,6 +9,7 @@ import { Meal } from './types/meal';
 import { MealPlanService } from './services/meal-plan-service';
 import { isSupabaseConfigured } from './lib/db';
 import { getCurrentMondayDate, getWeekRangeString } from './utils/date-helpers';
+import { NOTIFICATION_TIMEOUTS } from './constants/timeouts';
 
 interface ConversationHistory {
   role: "user" | "assistant";
@@ -45,8 +46,11 @@ function App() {
         setMeals(savedPlan.meals);
       }
     } catch (error) {
-      console.error('Failed to load saved plan:', error);
-      // Don't show error for loading - just log it
+      // Don't show error for loading - silently fail to avoid interrupting user experience
+      // In production, this should be sent to a logging service
+      if (process.env.NODE_ENV === 'development') {
+        console.error('Failed to load saved plan:', error);
+      }
     }
   }, [isSupabaseEnabled, currentWeekStart]);
 
@@ -57,10 +61,10 @@ function App() {
     }
   }, [isSupabaseEnabled, loadCurrentWeekPlan]);
 
-  // Auto-hide success message after 3 seconds
+  // Auto-hide success message
   useEffect(() => {
     if (saveSuccess) {
-      const timer = setTimeout(() => setSaveSuccess(false), 3000);
+      const timer = setTimeout(() => setSaveSuccess(false), NOTIFICATION_TIMEOUTS.SUCCESS);
       return () => clearTimeout(timer);
     }
   }, [saveSuccess]);
@@ -79,8 +83,8 @@ function App() {
       const errorMessage = error instanceof Error ? error.message : 'Failed to save meal plan';
       setSaveError(errorMessage);
       
-      // Auto-hide error after 5 seconds
-      setTimeout(() => setSaveError(null), 5000);
+      // Auto-hide error message
+      setTimeout(() => setSaveError(null), NOTIFICATION_TIMEOUTS.ERROR);
     } finally {
       setIsSaving(false);
     }
@@ -201,8 +205,8 @@ function App() {
     } catch {
       setToastMessage("Couldn't fetch a new idea – try again");
       
-      // Auto-hide toast after 3 seconds
-      setTimeout(() => setToastMessage(null), 3000);
+      // Auto-hide toast message
+      setTimeout(() => setToastMessage(null), NOTIFICATION_TIMEOUTS.TOAST);
     } finally {
       setRerollLoadingStates(prev => ({ ...prev, [mealId]: false }));
     }

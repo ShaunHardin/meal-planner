@@ -1,4 +1,5 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
+import { Meal } from '../types/meal';
 
 // Database types for Supabase
 export interface Database {
@@ -9,7 +10,7 @@ export interface Database {
           id: string;
           user_id: string;
           week_start: string;
-          meals: unknown[]; // JSON column
+          meals: Meal[]; // Properly typed meals array
           created_at: string;
           updated_at: string;
         };
@@ -17,7 +18,7 @@ export interface Database {
           id?: string;
           user_id: string;
           week_start: string;
-          meals: unknown[];
+          meals: Meal[];
           created_at?: string;
           updated_at?: string;
         };
@@ -25,7 +26,7 @@ export interface Database {
           id?: string;
           user_id?: string;
           week_start?: string;
-          meals?: unknown[];
+          meals?: Meal[];
           created_at?: string;
           updated_at?: string;
         };

@@ -60,23 +60,16 @@ describe('MealPlanService', () => {
     vi.mocked(db.isSupabaseConfigured).mockReturnValue(true);
     vi.mocked(db.getCurrentUser).mockResolvedValue(mockUser);
     
-    // Mock supabase
-    vi.mocked(db.supabase as any).from = mockSupabase.from;
+    // Mock supabase with proper typing
+    const mockSupabaseTyped = db.supabase as typeof db.supabase & { from: ReturnType<typeof vi.fn> };
+    mockSupabaseTyped.from = mockSupabase.from;
   });
 
   describe('savePlan', () => {
     const weekStart = new Date('2024-12-16');
 
     it('should save a new plan successfully', async () => {
-      const mockSelect = vi.fn().mockReturnValue({
-        eq: vi.fn().mockReturnValue({
-          eq: vi.fn().mockReturnValue({
-            single: vi.fn().mockResolvedValue({ data: null, error: null }),
-          }),
-        }),
-      });
-
-      const mockInsert = vi.fn().mockReturnValue({
+      const mockUpsert = vi.fn().mockReturnValue({
         select: vi.fn().mockReturnValue({
           single: vi.fn().mockResolvedValue({
             data: {
@@ -93,51 +86,56 @@ describe('MealPlanService', () => {
       });
 
       mockSupabase.from.mockReturnValue({
-        select: mockSelect,
-        insert: mockInsert,
+        upsert: mockUpsert,
       });
 
       const result = await MealPlanService.savePlan(weekStart, mockMeals);
 
       expect(result).toEqual(mockPlan);
       expect(mockSupabase.from).toHaveBeenCalledWith('plans');
+      expect(mockUpsert).toHaveBeenCalledWith(
+        expect.objectContaining({
+          user_id: 'user-123',
+          week_start: '2024-12-16',
+          meals: mockMeals,
+        }),
+        { onConflict: 'user_id,week_start' }
+      );
     });
 
-    it('should update existing plan successfully', async () => {
-      const existingPlan = { ...mockPlan, id: 'existing-plan' };
-
-      const mockSelect = vi.fn().mockReturnValue({
-        eq: vi.fn().mockReturnValue({
-          eq: vi.fn().mockReturnValue({
-            single: vi.fn().mockResolvedValue({ data: existingPlan, error: null }),
-          }),
-        }),
-      });
-
-      const mockUpdate = vi.fn().mockReturnValue({
-        eq: vi.fn().mockReturnValue({
-          select: vi.fn().mockReturnValue({
-            single: vi.fn().mockResolvedValue({
-              data: {
-                ...existingPlan,
-                meals: mockMeals,
-                updated_at: '2024-12-16T01:00:00Z',
-              },
-              error: null,
-            }),
+    it('should handle upsert with existing plan', async () => {
+      const mockUpsert = vi.fn().mockReturnValue({
+        select: vi.fn().mockReturnValue({
+          single: vi.fn().mockResolvedValue({
+            data: {
+              id: 'existing-plan',
+              user_id: 'user-123',
+              week_start: '2024-12-16',
+              meals: mockMeals,
+              created_at: '2024-12-15T00:00:00Z',
+              updated_at: '2024-12-16T01:00:00Z',
+            },
+            error: null,
           }),
         }),
       });
 
       mockSupabase.from.mockReturnValue({
-        select: mockSelect,
-        update: mockUpdate,
+        upsert: mockUpsert,
       });
 
       const result = await MealPlanService.savePlan(weekStart, mockMeals);
 
       expect(result.id).toBe('existing-plan');
       expect(result.meals).toEqual(mockMeals);
+      expect(mockUpsert).toHaveBeenCalledWith(
+        expect.objectContaining({
+          user_id: 'user-123',
+          week_start: '2024-12-16',
+          meals: mockMeals,
+        }),
+        { onConflict: 'user_id,week_start' }
+      );
     });
 
     it('should throw error when Supabase is not configured', async () => {
@@ -156,16 +154,8 @@ describe('MealPlanService', () => {
       );
     });
 
-    it('should throw DatabaseError on insert failure', async () => {
-      const mockSelect = vi.fn().mockReturnValue({
-        eq: vi.fn().mockReturnValue({
-          eq: vi.fn().mockReturnValue({
-            single: vi.fn().mockResolvedValue({ data: null, error: null }),
-          }),
-        }),
-      });
-
-      const mockInsert = vi.fn().mockReturnValue({
+    it('should throw DatabaseError on upsert failure', async () => {
+      const mockUpsert = vi.fn().mockReturnValue({
         select: vi.fn().mockReturnValue({
           single: vi.fn().mockResolvedValue({
             data: null,
@@ -179,12 +169,34 @@ describe('MealPlanService', () => {
       });
 
       mockSupabase.from.mockReturnValue({
-        select: mockSelect,
-        insert: mockInsert,
+        upsert: mockUpsert,
       });
 
       await expect(MealPlanService.savePlan(weekStart, mockMeals)).rejects.toThrow(
-        'Failed to create meal plan: Database constraint violation'
+        'Failed to save meal plan: Database constraint violation'
+      );
+    });
+
+    it('should throw error for invalid weekStart date', async () => {
+      const invalidDate = new Date('invalid');
+
+      await expect(MealPlanService.savePlan(invalidDate, mockMeals)).rejects.toThrow(
+        'Invalid week start date'
+      );
+    });
+
+    it('should throw error for empty meals array', async () => {
+      await expect(MealPlanService.savePlan(weekStart, [])).rejects.toThrow(
+        'Cannot save empty meal plan'
+      );
+    });
+
+    it('should throw error for invalid meal data', async () => {
+      // Create invalid meal data that will fail Zod validation
+      const invalidMeals = [{ invalid: 'data' }] as unknown as Meal[];
+
+      await expect(MealPlanService.savePlan(weekStart, invalidMeals)).rejects.toThrow(
+        'Invalid meal data structure'
       );
     });
   });

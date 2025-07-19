@@ -23,6 +23,7 @@
     "deploy:railway": "pnpm lint && pnpm type-check && pnpm test && pnpm build && railway up --service meal-planning --environment test --detach"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.47.10",
     "dotenv": "^16.5.0",
     "express": "^4.21.0",
     "lucide-react": "^0.344.0",
